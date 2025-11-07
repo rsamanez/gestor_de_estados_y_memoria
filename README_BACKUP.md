@@ -1,15 +1,17 @@
-# 🗂️ Gestor de Estados y Archivos con Sincronización S3 y Autenticación JWT
-
-Una aplicación React avanzada que demuestra gestión de estados y subida de archivos con persistencia dual: **IndexedDB local** y **Amazon S3 en la nube** con sincronización manual. Incluye un sistema completo de **autenticación JWT** con tokens de tiempo configurable y **URLs cortas** para compartir fácilmente.
+# 🗂️ Gestor de Estados y Archivos con Sincronización S3 y Auteón J aplicación React avanzada que demuestra gestión de estados y subida de archivos con persistencia dual: **IndexedDB local** y **Amazon S3 en la nube** con sincronización manual. Incluye un sistema completo de **autenticación JWT** con tokens de tiempo configurable y **URLs cortas** para compartir fácilmente.
 
 ## 🚀 Características
 
-### 🔐 Sistema de Autenticación JWT + URLs Cortas
-- **Tokens Seguros**: Autenticación basada en JWT con firma criptográfica HMAC-SHA256
+### 🔐 Sistema de Autenticación JWT ## 🔧 Variables de Entorno**Tokens Seguros**: Autenticación basada en JWT con firma criptográfica HMAC-SHA256
 - **Expiración Configurable**: Tokens desde minutos hasta semanas (1m, 30m, 1h, 24h, 7d, etc.)
 - **URLs Cortas**: Sistema completo para generar URLs cortas en lugar de compartir JWTs largos
-- **Generador Incluido**: Script `generate-jwt.cjs` para crear tokens con usuarios personalizados
-- **API de URLs Cortas**: Endpoints REST para crear, usar y monitorear códigos cortos
+- **Generador Incluid- 📊 **Dashboard S3**: Vista detallada de uso y costos de S3
+- 🔄 **Sincronización bidireccional**: Detectar cambios en S3 y sincronizar hacia local*: Script `generate-jwt.cjs` para crear ## 📚 Documentación Adicionalokens con usuarios personalizados
+- ```
+
+## 👨‍💻 Autor
+
+Desarrollado como prueba de concepto para demostrar las capacidades avanzadas de **React + IndexedDB + AWS S3 + Autenticación JWT** con arquitectura de almacenamiento dual, sincronización manual y sistema de autenticación completo. de URLs Cortas**: Endpoints REST para crear, usar y monitorear códigos cortos
 - **Validación Completa**: Verificación de formato, firma, expiración y permisos de aplicación
 - **Analytics Básico**: Contador de clicks y estadísticas de uso por URL corta
 - **Experiencia Fluida**: URLs limpias, persistencia de sesión y logout automático al expirar
@@ -60,6 +62,14 @@ node generate-jwt.cjs -e 2h -o token.json
 - **Gestión de Estados S3**: Archivos organizados por estados en buckets de S3
 - **Conexión en Tiempo Real**: Indicador visual del estado de conexión con S3
 - **Sincronización Bidireccional**: Sube archivos locales y descarga metadatos de S3
+
+### � Sistema de Autenticación JWT
+- **Tokens Seguros**: Autenticación basada en JWT con firma criptográfica HMAC-SHA256
+- **Expiración Configurable**: Tokens desde minutos hasta semanas (1m, 30m, 1h, 24h, 7d, etc.)
+- **Generador Incluido**: Script `generate-jwt.cjs` para crear tokens con usuarios personalizados
+- **Validación Completa**: Verificación de formato, firma, expiración y permisos de aplicación
+- **Experiencia Fluida**: URLs limpias, persistencia de sesión y logout automático al expirar
+- **Protección Total**: Toda la aplicación protegida - sin token válido no hay acceso
 
 ### 🔧 Características Técnicas
 - **Interfaz Moderna**: UI limpia y responsiva con navegación intuitiva y estados de carga
@@ -116,18 +126,15 @@ node generate-jwt.cjs -e 2h -o token.json
 │   └── main.jsx                  # Punto de entrada
 ├── backend/                  # API Backend
 │   ├── server.js                 # Servidor Express con endpoints S3
-│   ├── routes/
-│   │   └── shortUrls.js          # Rutas para URLs cortas
 │   ├── package.json              # Dependencias del backend
 │   ├── .env.example              # Variables de entorno de ejemplo
 │   ├── .env                      # Configuración AWS (no incluido en git)
 │   └── README.md                 # Documentación específica del backend
 ├── generate-jwt.cjs          # Script generador de tokens JWT
-├── demo-short-urls.sh        # Script de demo para URLs cortas
 ├── JWT-AUTH.md               # Documentación del sistema de autenticación
-├── CONCEPT-PERSISTENCE.md    # Documentación conceptual de persistencia
 ├── package.json              # Dependencias del frontend
 └── README.md                 # Esta documentación
+
 ```
 
 ## 🚀 Instalación y Configuración
@@ -295,137 +302,162 @@ Si accedes a `http://localhost:5173` sin el parámetro `?token=`, verás una pan
 - **Validación preventiva**: Prevención de subidas cuando no hay espacio local
 - **Alertas inteligentes**: Notificaciones de estado de conexión y sincronización
 
-## 🔗 API de URLs Cortas
+## 🎨 Características de UI
 
-### Endpoints Disponibles
+### Diseño Moderno
+- **Responsive Design**: Optimizado para móviles, tablets y desktop
+- **Loading States**: Spinners y estados de carga elegantes
+- **Animaciones fluidas**: Transiciones suaves y micro-interacciones
+- **Feedback visual**: Indicadores de drag & drop y estados activos
+- **Iconografía intuitiva**: Emojis y iconos para mejor UX
+- **Gradientes dinámicos**: Colores modernos y atractivos
 
-#### `POST /api/short-url`
-Genera una URL corta para un token JWT.
+### Componentes Avanzados
+- **Barra de almacenamiento**: Visualización gráfica del espacio usado local
+- **Estados de carga**: Feedback inmediato durante operaciones locales y S3
+- **Navegación por estados**: Botones temáticos con colores únicos
+- **Área de drag & drop**: Zona interactiva con respuesta visual
+- **Lista de archivos**: Cards organizadas con indicadores de sincronización y acciones rápidas
+- **S3UploadStatus**: Componente dedicado para mostrar estado de conexión y progreso
+- **Botón de Sincronización**: Control manual para sincronizar archivos locales con S3
+- **Indicadores de Estado**: Iconos que muestran si el archivo está solo local, solo en S3, o sincronizado
 
-**Request:**
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "expiresIn": "2h"  // opcional, por defecto "1h"
-}
-```
+## 🔧 Tecnologías Utilizadas
 
-**Response:**
-```json
-{
-  "shortCode": "a1b2c3d4",
-  "shortUrl": "http://localhost:3001/s/a1b2c3d4",
-  "originalUrl": "http://localhost:5173?token=eyJhbG...",
-  "expiresAt": "2024-01-15T14:30:00.000Z"
-}
-```
+### Frontend
+- **React 18**: Hooks avanzados con useState, useEffect y custom hooks
+- **IndexedDB API**: Base de datos robusta del navegador para almacenamiento local
+- **File API**: Lectura y procesamiento avanzado de archivos
+- **Fetch API**: Comunicación con el backend para operaciones S3
+- **Storage API**: Monitoreo de cuotas y uso de almacenamiento local
+- **CSS Grid/Flexbox**: Layouts responsivos y modernos
+- **CSS Custom Properties**: Variables dinámicas para temas
 
-#### `GET /s/:shortCode`
-Redirige a la aplicación con el token JWT asociado.
+### Backend
+- **Express.js**: Framework web rápido y minimalista para Node.js
+- **AWS SDK v2**: SDK oficial de Amazon para integración con servicios AWS
+- **Multer**: Middleware para manejo de uploads multipart/form-data
+- **CORS**: Middleware para configuración de Cross-Origin Resource Sharing
+- **UUID**: Generación de identificadores únicos para archivos
+- **dotenv**: Carga de variables de entorno desde archivos .env
 
-**Ejemplo:**
-- Acceder: `http://localhost:3001/s/a1b2c3d4`
-- Redirige a: `http://localhost:5173?token=eyJhbG...`
+### Infraestructura y Servicios
+- **Amazon S3**: Almacenamiento de objetos escalable y duradero
+- **AWS IAM**: Gestión de identidad y acceso para permisos S3
+- **Node.js**: Runtime de JavaScript del lado del servidor
 
-#### `GET /api/short-url/:shortCode/stats`
-Obtiene estadísticas sobre una URL corta (sin revelar el token).
+### Herramientas de Desarrollo
+- **Vite**: Build tool optimizado con HMR para el frontend
+- **Nodemon**: Reinicio automático del servidor durante desarrollo
+- **ESLint**: Linting y calidad de código
+- **Modern JavaScript**: ES6+, async/await, Promises en frontend y backend
 
-**Response:**
-```json
-{
-  "shortCode": "a1b2c3d4",
-  "createdAt": "2024-01-15T12:30:00.000Z",
-  "expiresAt": "2024-01-15T14:30:00.000Z",
-  "clicks": 5,
-  "isExpired": false
-}
-```
+## 📱 Responsividad
 
-### Script de Demo Automático
+La aplicación está optimizada para:
+- 📱 Móviles (480px y menos)
+- 📱 Tablets (768px y menos)
+- 💻 Desktop (1200px y más)
 
-Para probar todo el flujo de URLs cortas automáticamente:
+## ⚡ Rendimiento y Optimizaciones
 
+### Almacenamiento Eficiente Dual
+- **IndexedDB Local**: Operaciones asíncronas que no bloquean la UI
+- **Amazon S3**: Almacenamiento escalable con CDN global de AWS
+- **Gestión de memoria**: Carga bajo demanda de archivos grandes
+- **Transacciones optimizadas**: Operaciones batch para mejor rendimiento local
+- **Streaming de archivos**: Upload directo a S3 sin almacenamiento temporal en servidor
+- **Compresión inteligente**: Almacenamiento local en base64 con metadatos mínimos
+
+### Optimizaciones de Backend
+- **Multer en memoria**: Procesamiento de archivos sin escritura a disco
+- **AWS SDK optimizado**: Conexiones reutilizables y configuración de regiones
+- **Middleware eficiente**: CORS y parsing JSON optimizados
+- **Manejo de errores robusto**: Respuestas estructuradas y logging detallado
+
+### Optimizaciones de React
+- **Custom Hooks**: Lógica reutilizable para IndexedDB y S3
+- **Estados de carga duales**: Separación entre operaciones locales y de red
+- **Manejo de errores**: Recovery automático y feedback al usuario
+- **Componentización**: Separación de responsabilidades para mejor mantenimiento
+- **Prevención de re-renders**: Optimización de dependencias en useEffect
+
+### Experiencia de Usuario Mejorada
+- **Feedback inmediato**: Estados de carga para operaciones locales y de red
+- **Validación preventiva**: Verificación de espacio antes de subir archivos
+- **Recuperación de errores**: Manejo graceful de fallos de red, S3 o almacenamiento local
+- **Indicadores de conexión**: Estado visual de conectividad con S3
+- **Sincronización manual**: Control del usuario sobre cuándo sincronizar
+- **Responsive**: Adaptación automática a diferentes tamaños de pantalla
+
+## 🔒 Seguridad y Privacidad
+
+### Seguridad de Autenticación JWT
+- **Tokens firmados**: Cada token está firmado criptográficamente con HMAC-SHA256
+- **Validación completa**: Verifica formato, firma, expiración y aplicación específica
+- **Expiración automática**: Los tokens expiran automáticamente según configuración
+- **No persistencia permanente**: Tokens se almacenan solo en sessionStorage
+- **Clave secreta**: Sistema de clave secreta compartida entre generador y validador
+- **Limpieza automática**: URLs se limpian automáticamente después de validación
+
+### Seguridad del Backend
+- **Variables de entorno**: Credenciales AWS almacenadas de forma segura
+- **CORS configurado**: Solo origins permitidos pueden acceder a la API
+- **Validación de archivos**: Verificación de tipos, tamaños y metadatos
+- **AWS IAM**: Permisos granulares para operaciones S3 específicas
+- **Sanitización**: Limpieza de nombres de archivos y paths para prevenir ataques
+
+### Seguridad del Frontend
+- **Protección JWT**: Toda la aplicación protegida por autenticación JWT
+- **Almacenamiento local seguro**: IndexedDB aislado por origen de la aplicación
+- **No exposición de credenciales**: Las credenciales AWS nunca llegan al frontend
+- **Validación dual**: Verificación tanto en frontend como backend
+- **Manejo seguro de archivos**: Procesamiento en memoria sin persistencia temporal
+- **Guard de rutas**: Componente AuthGuard protege toda la aplicación
+
+### Privacidad
+- **Control del usuario**: Los archivos solo se sincronizan cuando el usuario lo decide
+- **Autenticación requerida**: Solo usuarios con tokens válidos pueden acceder
+- **No tracking**: Sin cookies ni seguimiento de terceros
+- **Datos privados**: Los archivos permanecen en el control del usuario (local + su bucket S3)
+- **Transparencia**: Estado visible de dónde están almacenados los archivos y quién está autenticado
+- **Sesiones controladas**: Los tokens expiran automáticamente según configuración
+
+## 🌐 Compatibilidad
+
+### Navegadores de Desktop
+- ✅ **Chrome 58+**: Soporte completo
+- ✅ **Firefox 52+**: Soporte completo  
+- ✅ **Safari 10+**: Soporte completo
+- ✅ **Edge 79+**: Soporte completo
+
+### Navegadores Móviles
+- ✅ **iOS Safari 10+**: iPhone/iPad compatible
+- ✅ **Chrome Android 81+**: Soporte completo
+- ✅ **Firefox Android 68+**: Soporte completo
+- ✅ **Samsung Internet 7+**: Compatible
+
+### Capacidades por Plataforma
+| Plataforma | Capacidad IndexedDB | Características |
+|---|---|---|
+| **Desktop** | 1GB - 10GB+ | Capacidad máxima, rendimiento óptimo |
+| **Android** | 50MB - 2GB | Buena capacidad, rendimiento sólido |
+| **iOS** | 50MB - 1GB | Capacidad moderada, limpieza automática |
+
+## �️ Scripts Disponibles
+
+### Frontend
+- `npm run dev`: Servidor de desarrollo con HMR (puerto 5173)
+- `npm run build`: Build optimizada para producción
+- `npm run preview`: Vista previa de la build de producción
+- `npm run lint`: Verificación de código con ESLint
+
+### Backend
 ```bash
-# Ejecutar demo completa
-./demo-short-urls.sh
+cd backend
+npm run dev      # Desarrollo con nodemon (puerto 3001)
+npm start        # Producción con node
 ```
-
-Este script:
-1. ✅ Verifica que el backend esté corriendo
-2. 🎫 Genera un token JWT de 4 horas
-3. 🔗 Crea una URL corta automáticamente
-4. 📊 Muestra estadísticas iniciales
-5. 🌐 Simula un acceso (redirección)
-6. 📊 Muestra estadísticas actualizadas
-7. 🎉 Proporciona URLs y comandos para pruebas manuales
-
-### Ejemplos de Uso
-
-#### Con curl
-```bash
-# 1. Generar JWT
-JWT_TOKEN=$(node generate-jwt.cjs -e 4h -u admin | grep "token=" | cut -d'=' -f2)
-
-# 2. Crear URL corta
-curl -X POST http://localhost:3001/api/short-url \
-  -H "Content-Type: application/json" \
-  -d "{\"token\":\"$JWT_TOKEN\",\"expiresIn\":\"4h\"}"
-
-# 3. Obtener estadísticas de URL corta
-curl http://localhost:3001/api/short-url/a1b2c3d4/stats
-```
-
-#### Con JavaScript/Frontend
-```javascript
-// Generar URL corta desde el frontend
-async function createShortUrl(jwtToken, expiresIn = '2h') {
-  const response = await fetch('http://localhost:3001/api/short-url', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      token: jwtToken,
-      expiresIn: expiresIn
-    })
-  });
-  
-  const data = await response.json();
-  return data.shortUrl; // ej: "http://localhost:3001/s/a1b2c3d4"
-}
-```
-
-### Características de las URLs Cortas
-
-- ✅ **Códigos únicos**: 8 caracteres hexadecimales (`a1b2c3d4`)
-- ⏰ **Expiración configurable**: Misma duración que el JWT o personalizada
-- 📊 **Contador de clicks**: Rastrea cuántas veces se accede
-- 🔒 **Seguridad**: Los tokens JWT no se exponen en logs del servidor
-- 💾 **Almacenamiento temporal**: En memoria (en producción usar Redis/DB)
-- 🚀 **Redirección rápida**: Menos de 50ms de latencia típica
-
-### Ventajas de URLs Cortas
-
-1. **Compartir fácil**: URLs más cortas y manejables
-2. **Seguridad mejorada**: El JWT no es visible en la URL
-3. **Analytics**: Seguimiento de accesos y uso
-4. **Expiración independiente**: Puede expirar antes que el JWT
-5. **Logs más limpios**: Los tokens JWT no aparecen en logs de acceso
-
-### Limitaciones Actuales
-
-- **Almacenamiento en memoria**: Se pierden al reiniciar el servidor
-- **Sin persistencia**: No sobrevive reinicios del backend
-- **Dominio fijo**: Usa el dominio del backend (no personalizable)
-
-### Para Producción
-
-Se recomienda:
-- Usar **Redis** o **base de datos** para persistir códigos cortos
-- Implementar **rate limiting** para prevenir abuso
-- Agregar **dominios personalizados** (ej: `https://mi-app.com/s/abc123`)
-- **Logs de auditoría** para seguridad
-- **Cleanup automático** de códigos expirados
 
 ## 🔧 Variables de Entorno
 
@@ -587,6 +619,138 @@ Tu usuario/rol de AWS necesita los siguientes permisos:
 - **Estado de S3**: El indicador visual muestra si está conectado o desconectado
 - **IndexedDB**: Usa DevTools > Application > Storage para inspeccionar datos locales
 
+## 🔗 API de URLs Cortas
+
+### Endpoints Disponibles
+
+#### `POST /api/short-url`
+Genera una URL corta para un token JWT.
+
+**Request:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expiresIn": "2h"  // opcional, por defecto "1h"
+}
+```
+
+**Response:**
+```json
+{
+  "shortCode": "a1b2c3d4",
+  "shortUrl": "http://localhost:3001/s/a1b2c3d4",
+  "originalUrl": "http://localhost:5173?token=eyJhbG...",
+  "expiresAt": "2024-01-15T14:30:00.000Z"
+}
+```
+
+#### `GET /s/:shortCode`
+Redirige a la aplicación con el token JWT asociado.
+
+**Ejemplo:**
+- Acceder: `http://localhost:3001/s/a1b2c3d4`
+- Redirige a: `http://localhost:5173?token=eyJhbG...`
+
+#### `GET /api/short-url/:shortCode/stats`
+Obtiene estadísticas sobre una URL corta (sin revelar el token).
+
+**Response:**
+```json
+{
+  "shortCode": "a1b2c3d4",
+  "createdAt": "2024-01-15T12:30:00.000Z",
+  "expiresAt": "2024-01-15T14:30:00.000Z",
+  "clicks": 5,
+  "isExpired": false
+}
+```
+
+### Script de Demo Automático
+
+Para probar todo el flujo de URLs cortas automáticamente:
+
+```bash
+# Ejecutar demo completa
+./demo-short-urls.sh
+```
+
+Este script:
+1. ✅ Verifica que el backend esté corriendo
+2. 🎫 Genera un token JWT de 4 horas
+3. 🔗 Crea una URL corta automáticamente
+4. 📊 Muestra estadísticas iniciales
+5. 🌐 Simula un acceso (redirección)
+6. 📊 Muestra estadísticas actualizadas
+7. 🎉 Proporciona URLs y comandos para pruebas manuales
+
+### Ejemplos de Uso
+
+#### Con curl
+```bash
+# 1. Generar JWT
+JWT_TOKEN=$(node generate-jwt.cjs -e 4h -u admin | grep "token=" | cut -d'=' -f2)
+
+# 2. Crear URL corta
+curl -X POST http://localhost:3001/api/short-url \
+  -H "Content-Type: application/json" \
+  -d "{\"token\":\"$JWT_TOKEN\",\"expiresIn\":\"4h\"}"
+
+# 3. Obtener estadísticas de URL corta
+curl http://localhost:3001/api/short-url/a1b2c3d4/stats
+```
+
+#### Con JavaScript/Frontend
+```javascript
+// Generar URL corta desde el frontend
+async function createShortUrl(jwtToken, expiresIn = '2h') {
+  const response = await fetch('http://localhost:3001/api/short-url', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      token: jwtToken,
+      expiresIn: expiresIn
+    })
+  });
+  
+  const data = await response.json();
+  return data.shortUrl; // ej: "http://localhost:3001/s/a1b2c3d4"
+}
+```
+
+### Características de las URLs Cortas
+
+- ✅ **Códigos únicos**: 8 caracteres hexadecimales (`a1b2c3d4`)
+- ⏰ **Expiración configurable**: Misma duración que el JWT o personalizada
+- 📊 **Contador de clicks**: Rastrea cuántas veces se accede
+- 🔒 **Seguridad**: Los tokens JWT no se exponen en logs del servidor
+- 💾 **Almacenamiento temporal**: En memoria (en producción usar Redis/DB)
+- 🚀 **Redirección rápida**: Menos de 50ms de latencia típica
+
+### Ventajas de URLs Cortas
+
+1. **Compartir fácil**: URLs más cortas y manejables
+2. **Seguridad mejorada**: El JWT no es visible en la URL
+3. **Analytics**: Seguimiento de accesos y uso
+4. **Expiración independiente**: Puede expirar antes que el JWT
+5. **Logs más limpios**: Los tokens JWT no aparecen en logs de acceso
+
+### Limitaciones Actuales
+
+- **Almacenamiento en memoria**: Se pierden al reiniciar el servidor
+- **Sin persistencia**: No sobrevive reinicios del backend
+- **Dominio fijo**: Usa el dominio del backend (no personalizable)
+
+### Para Producción
+
+Se recomienda:
+- Usar **Redis** o **base de datos** para persistir códigos cortos
+- Implementar **rate limiting** para prevenir abuso
+- Agregar **dominios personalizados** (ej: `https://mi-app.com/s/abc123`)
+- **Logs de auditoría** para seguridad
+- **Cleanup automático** de códigos expirados
+
 ## 🎯 Próximas Mejoras
 
 ### Funcionalidades Planificadas
@@ -598,8 +762,8 @@ Tu usuario/rol de AWS necesita los siguientes permisos:
 - 🌐 **Multi-bucket**: Soporte para múltiples buckets S3 por estado
 - 📱 **PWA**: Convertir en Progressive Web App para instalación
 - 🔐 **Encriptación**: Encriptación de archivos antes de subir a S3
-- 📊 **Dashboard S3**: Vista detallada de uso y costos de S3
-- 🔄 **Sincronización bidireccional**: Detectar cambios en S3 y sincronizar hacia local
+- � **Dashboard S3**: Vista detallada de uso y costos de S3
+- �🔄 **Sincronización bidireccional**: Detectar cambios en S3 y sincronizar hacia local
 
 ### Mejoras de Autenticación JWT
 - 🔐 **JWT desde Backend**: Mover validación JWT completamente al backend
@@ -617,26 +781,11 @@ Tu usuario/rol de AWS necesita los siguientes permisos:
 - **Compression**: Compresión automática de archivos antes de S3
 - **Rate Limiting**: Límites de velocidad para API y uploads
 
-## 🌐 Compatibilidad
+---
 
-### Navegadores de Desktop
-- ✅ **Chrome 58+**: Soporte completo
-- ✅ **Firefox 52+**: Soporte completo  
-- ✅ **Safari 10+**: Soporte completo
-- ✅ **Edge 79+**: Soporte completo
+## 📄 Licencia
 
-### Navegadores Móviles
-- ✅ **iOS Safari 10+**: iPhone/iPad compatible
-- ✅ **Chrome Android 81+**: Soporte completo
-- ✅ **Firefox Android 68+**: Soporte completo
-- ✅ **Samsung Internet 7+**: Compatible
-
-### Capacidades por Plataforma
-| Plataforma | Capacidad IndexedDB | Características |
-|---|---|---|
-| **Desktop** | 1GB - 10GB+ | Capacidad máxima, rendimiento óptimo |
-| **Android** | 50MB - 2GB | Buena capacidad, rendimiento sólido |
-| **iOS** | 50MB - 1GB | Capacidad moderada, limpieza automática |
+MIT License - Proyecto de código abierto
 
 ## 🏗️ Arquitectura
 
@@ -655,13 +804,11 @@ Usuario presiona "Sync" → Backend Express → Amazon S3
 - **Backend (Express)**: API REST para comunicación segura con AWS
 - **Amazon S3**: Almacenamiento en la nube escalable y duradero
 
-## 📚 Documentación Adicional
+## � Documentación Adicional
 
 - **[JWT-AUTH.md](./JWT-AUTH.md)**: Guía completa del sistema de autenticación JWT
-- **[CONCEPT-PERSISTENCE.md](./CONCEPT-PERSISTENCE.md)**: Conceptos de persistencia de URLs cortas
 - **[backend/README.md](./backend/README.md)**: Documentación específica del backend
 - **generate-jwt.cjs**: Script generador con `--help` para ver todas las opciones
-- **demo-short-urls.sh**: Script de demo automático para URLs cortas
 
 ## 🚀 Enlaces Rápidos
 
@@ -700,16 +847,10 @@ curl -X POST http://localhost:3001/api/short-url \
 # 3. Usar la shortUrl devuelta en el navegador
 ```
 
----
+## �👨‍💻 Autor
 
-## 📄 Licencia
-
-MIT License - Proyecto de código abierto
-
-## 👨‍💻 Autor
-
-Desarrollado como prueba de concepto para demostrar las capacidades avanzadas de **React + IndexedDB + AWS S3 + Autenticación JWT + URLs Cortas** con arquitectura de almacenamiento dual, sincronización manual y sistema de autenticación completo.
+Desarrollado como prueba de concepto para demostrar las capacidades avanzadas de **React + IndexedDB + AWS S3 + Autenticación JWT** con arquitectura de almacenamiento dual, sincronización manual y sistema de autenticación completo.
 
 ---
 
-⭐ **¡Proyecto educativo para aprender gestión de estado, almacenamiento web moderno, integración con servicios en la nube, autenticación JWT y sistemas de URLs cortas!** ⭐
+⭐ **¡Proyecto educativo para aprender gestión de estado, almacenamiento web moderno, integración con servicios en la nube y autenticación JWT!** ⭐
