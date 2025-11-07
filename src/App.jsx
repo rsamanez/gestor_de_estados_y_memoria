@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useIndexedDBSafe, fileStorageDB } from './hooks/useIndexedDB'
 import { useS3Upload, useS3Sync, s3FileAPI } from './hooks/useS3Upload'
+import AuthGuard from './components/AuthGuard'
 import StateNavigation from './components/StateNavigation'
 import FileUpload from './components/FileUpload'
 import FileList from './components/FileList'
@@ -177,8 +178,9 @@ function App() {
   }
   
   return (
-    <div className="app">
-      <header className="app-header">
+    <AuthGuard>
+      <div className="app">
+        <header className="app-header">
         <h1>🗂️ Gestor de Estados y Archivos</h1>
         <p className="app-description">
           Gestiona archivos en 4 estados diferentes con persistencia en IndexedDB
@@ -260,6 +262,7 @@ function App() {
         )}
       </footer>
     </div>
+    </AuthGuard>
   )
 }
 

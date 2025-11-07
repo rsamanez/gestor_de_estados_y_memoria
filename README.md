@@ -1,8 +1,34 @@
-# 🗂️ Gestor de Estados y Archivos con Sincronización S3
+# 🗂️ Gestor de Estados y Archivos con Sincronización S3 y Autenticación JWT
 
-Una aplicación React avanzada que demuestra gestión de estados y subida de archivos con persistencia dual: **IndexedDB local** y **Amazon S3 en la nube** con sincronización manual.
+Una aplicación React avanzada que demuestra gestión de estados y subida de archivos con persistencia dual: **IndexedDB local** y **Amazon S3 en la nube** con sincronización manual. Incluye un sistema completo de **autenticación JWT** con tokens de tiempo configurable.
 
-## 🚀 Características Principales
+## 🚀 Característi## 🛠️ Scripts Disponibles
+
+### Frontend
+- `npm run dev`: Servidor de desarrollo con HMR (puerto 5173)
+- `npm run build`: Build optimizada para producción
+- `npm run preview`: Vista previa de la build de producción
+- `npm run lint`: Verificación de código con ESLint
+
+### Backend
+```bash
+cd backend
+npm run dev      # Desarrollo con nodemon (puerto 3001)
+npm start        # Producción con node
+```
+
+### Autenticación JWT
+```bash
+# Generar tokens con diferentes configuraciones
+node generate-jwt.cjs                    # Token por defecto (24h)
+node generate-jwt.cjs -e 1h              # Token de 1 hora
+node generate-jwt.cjs -e 30m -u admin    # Token de 30 min para admin
+node generate-jwt.cjs -e 8h -u dev       # Token de 8 horas para desarrollo
+node generate-jwt.cjs --help             # Ver todas las opciones
+
+# Guardar token en archivo
+node generate-jwt.cjs -e 2h -o token.json
+```s
 
 ### 🗂️ Gestión de Estados
 - **4 Estados Distintos**: La aplicación maneja 4 estados diferentes entre los que puedes navegar
@@ -21,12 +47,21 @@ Una aplicación React avanzada que demuestra gestión de estados y subida de arc
 - **Conexión en Tiempo Real**: Indicador visual del estado de conexión con S3
 - **Sincronización Bidireccional**: Sube archivos locales y descarga metadatos de S3
 
+### � Sistema de Autenticación JWT
+- **Tokens Seguros**: Autenticación basada en JWT con firma criptográfica HMAC-SHA256
+- **Expiración Configurable**: Tokens desde minutos hasta semanas (1m, 30m, 1h, 24h, 7d, etc.)
+- **Generador Incluido**: Script `generate-jwt.cjs` para crear tokens con usuarios personalizados
+- **Validación Completa**: Verificación de formato, firma, expiración y permisos de aplicación
+- **Experiencia Fluida**: URLs limpias, persistencia de sesión y logout automático al expirar
+- **Protección Total**: Toda la aplicación protegida - sin token válido no hay acceso
+
 ### 🔧 Características Técnicas
 - **Interfaz Moderna**: UI limpia y responsiva con navegación intuitiva y estados de carga
 - **Gestión de Archivos**: Ver, descargar y eliminar archivos por estado con vista previa
 - **Monitoreo de Almacenamiento**: Visualización en tiempo real del uso de espacio local y S3
 - **Estados de Sincronización**: Feedback visual del progreso de uploads y sincronización
 - **Validación de Espacio**: Prevención automática de subidas cuando no hay suficiente espacio
+- **Barra de Usuario**: Información del usuario autenticado y tiempo de expiración visible
 
 ## 🛠️ Stack Tecnológico
 
@@ -62,10 +97,13 @@ Una aplicación React avanzada que demuestra gestión de estados y subida de arc
 │   │   ├── StateNavigation.jsx   # Navegación entre estados
 │   │   ├── StateNavigation.css
 │   │   ├── S3UploadStatus.jsx    # Estado de conexión y sincronización S3
-│   │   └── S3UploadStatus.css    # Estilos para indicadores S3
+│   │   ├── S3UploadStatus.css    # Estilos para indicadores S3
+│   │   ├── AuthGuard.jsx         # Componente de protección JWT
+│   │   └── AuthGuard.css         # Estilos para autenticación
 │   ├── hooks/
 │   │   ├── useIndexedDB.js       # Hook para IndexedDB con persistencia local
-│   │   └── useS3Upload.js        # Hooks para integración con S3 y backend
+│   │   ├── useS3Upload.js        # Hooks para integración con S3 y backend
+│   │   └── useJWTAuth.js         # Hook para autenticación y validación JWT
 │   ├── App.jsx                   # Componente principal con estados duales
 │   ├── App.css                   # Estilos con componentes de loading
 │   ├── index.css                 # Estilos globales optimizados
@@ -76,6 +114,8 @@ Una aplicación React avanzada que demuestra gestión de estados y subida de arc
 │   ├── .env.example              # Variables de entorno de ejemplo
 │   ├── .env                      # Configuración AWS (no incluido en git)
 │   └── README.md                 # Documentación específica del backend
+├── generate-jwt.cjs          # Script generador de tokens JWT
+├── JWT-AUTH.md               # Documentación del sistema de autenticación
 ├── package.json              # Dependencias del frontend
 └── README.md                 # Esta documentación
 
@@ -87,6 +127,7 @@ Una aplicación React avanzada que demuestra gestión de estados y subida de arc
 - **Node.js 18+**: Para desarrollo óptimo
 - **Cuenta AWS**: Para funcionalidades de S3 (opcional para modo local)
 - **Credenciales AWS**: Access Key y Secret Key con permisos S3
+- **Token JWT**: Requerido para acceder a la aplicación (se genera con script incluido)
 
 ### 1. Configuración del Frontend
 ```bash
@@ -126,14 +167,53 @@ aws s3 mb s3://tu-bucket-name
 # Permitir origins: http://localhost:5173, http://localhost:5174
 ```
 
-### 4. Ejecutar la Aplicación Completa
+### 4. Generar Token JWT de Acceso (REQUERIDO)
+```bash
+# Generar token válido por 24 horas (usuario por defecto)
+node generate-jwt.cjs
+
+# Generar token para desarrollo (1 hora)
+node generate-jwt.cjs -e 1h -u developer
+
+# Generar token para pruebas (30 minutos)
+node generate-jwt.cjs -e 30m -u tester
+
+# Generar token de larga duración (8 horas)
+node generate-jwt.cjs -e 8h -u admin
+
+# Ver todas las opciones disponibles
+node generate-jwt.cjs --help
+
+# Guardar token en archivo JSON
+node generate-jwt.cjs -e 2h -u admin -o admin-token.json
+```
+
+**⚠️ IMPORTANTE**: La aplicación requiere un token JWT válido para funcionar. Sin token, mostrará una pantalla de "Acceso Denegado".
+
+### 5. Ejecutar la Aplicación Completa
 ```bash
 # Terminal 1: Backend (puerto 3001)
 cd backend && npm run dev
 
 # Terminal 2: Frontend (puerto 5173)
 npm run dev
+
+# Terminal 3: Generar token y usar URL completa
+node generate-jwt.cjs -e 2h -u admin
+# Copiar y pegar la URL generada en el navegador
 ```
+
+### 6. Acceder a la Aplicación
+1. **Generar token**: El script mostrará una URL completa como:
+   ```
+   http://localhost:5173?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+   ```
+
+2. **Usar la URL**: Copia y pega la URL completa en tu navegador
+
+3. **Acceso automático**: La aplicación validará el token y te dará acceso
+
+4. **Sin token**: Si accedes a `http://localhost:5173` sin el parámetro `?token=`, verás una pantalla de "Acceso Denegado" con instrucciones
 
 ## 💡 Funcionalidades
 
@@ -270,6 +350,14 @@ La aplicación está optimizada para:
 
 ## 🔒 Seguridad y Privacidad
 
+### Seguridad de Autenticación JWT
+- **Tokens firmados**: Cada token está firmado criptográficamente con HMAC-SHA256
+- **Validación completa**: Verifica formato, firma, expiración y aplicación específica
+- **Expiración automática**: Los tokens expiran automáticamente según configuración
+- **No persistencia permanente**: Tokens se almacenan solo en sessionStorage
+- **Clave secreta**: Sistema de clave secreta compartida entre generador y validador
+- **Limpieza automática**: URLs se limpian automáticamente después de validación
+
 ### Seguridad del Backend
 - **Variables de entorno**: Credenciales AWS almacenadas de forma segura
 - **CORS configurado**: Solo origins permitidos pueden acceder a la API
@@ -278,16 +366,20 @@ La aplicación está optimizada para:
 - **Sanitización**: Limpieza de nombres de archivos y paths para prevenir ataques
 
 ### Seguridad del Frontend
+- **Protección JWT**: Toda la aplicación protegida por autenticación JWT
 - **Almacenamiento local seguro**: IndexedDB aislado por origen de la aplicación
 - **No exposición de credenciales**: Las credenciales AWS nunca llegan al frontend
 - **Validación dual**: Verificación tanto en frontend como backend
 - **Manejo seguro de archivos**: Procesamiento en memoria sin persistencia temporal
+- **Guard de rutas**: Componente AuthGuard protege toda la aplicación
 
 ### Privacidad
 - **Control del usuario**: Los archivos solo se sincronizan cuando el usuario lo decide
+- **Autenticación requerida**: Solo usuarios con tokens válidos pueden acceder
 - **No tracking**: Sin cookies ni seguimiento de terceros
 - **Datos privados**: Los archivos permanecen en el control del usuario (local + su bucket S3)
-- **Transparencia**: Estado visible de dónde están almacenados los archivos
+- **Transparencia**: Estado visible de dónde están almacenados los archivos y quién está autenticado
+- **Sesiones controladas**: Los tokens expiran automáticamente según configuración
 
 ## 🌐 Compatibilidad
 
@@ -341,6 +433,27 @@ S3_BUCKET_NAME=tu-bucket-name
 PORT=3001
 ```
 
+### Configuración JWT
+
+#### Cambiar Clave Secreta (Recomendado para Producción)
+1. Edita `generate-jwt.cjs` línea 8:
+   ```javascript
+   const DEFAULT_SECRET = 'tu-clave-super-secreta-aqui';
+   ```
+
+2. Edita `src/hooks/useJWTAuth.js` línea 4:
+   ```javascript
+   const JWT_SECRET = 'tu-clave-super-secreta-aqui';
+   ```
+
+⚠️ **IMPORTANTE**: En producción, la clave secreta debería venir del backend, no estar en el frontend.
+
+#### Tiempos de Expiración Recomendados
+- **Desarrollo**: `1h` - `2h` (reinicio frecuente)
+- **Testing**: `30m` (pruebas rápidas)
+- **Demo**: `8h` - `24h` (presentaciones largas)
+- **Producción**: `1h` - `4h` (balance entre seguridad y usabilidad)
+
 ### Permisos AWS S3 Requeridos
 Tu usuario/rol de AWS necesita los siguientes permisos:
 ```json
@@ -367,12 +480,16 @@ Tu usuario/rol de AWS necesita los siguientes permisos:
 ## 📖 Ejemplos de Uso
 
 ### Flujo Básico de Trabajo
-1. **Iniciar aplicación**: Se carga en el Estado 1 por defecto con indicador de conexión S3
-2. **Subir archivos**: Arrastra imágenes, documentos o cualquier archivo (se guardan inmediatamente en IndexedDB)
-3. **Sincronizar con S3**: Haz clic en el botón "Sincronizar" para subir archivos a la nube
-4. **Cambiar estado**: Haz clic en Estado 2, 3 o 4 para organizaciones diferentes
-5. **Gestionar archivos**: Descarga o elimina archivos (local y S3 sincronizados)
-6. **Persistencia dual**: Los archivos se mantienen localmente y en S3
+1. **Generar token JWT**: `node generate-jwt.cjs -e 2h -u usuario`
+2. **Acceder con token**: Usar la URL generada con el parámetro `?token=...`
+3. **Validación automática**: La aplicación valida el token y muestra información del usuario en la barra superior
+4. **Sesión activa**: El token se guarda en sessionStorage y la URL se limpia automáticamente
+5. **Subir archivos**: Arrastra imágenes, documentos o cualquier archivo (se guardan inmediatamente en IndexedDB)
+6. **Sincronizar con S3**: Haz clic en el botón "Sincronizar" para subir archivos a la nube
+7. **Cambiar estado**: Haz clic en Estado 2, 3 o 4 para organizaciones diferentes
+8. **Gestionar archivos**: Descarga o elimina archivos (local y S3 sincronizados)
+9. **Monitoreo de sesión**: Ve el tiempo de expiración en la barra superior
+10. **Logout automático**: Al expirar el token, la aplicación te desconecta automáticamente
 
 ### Casos de Uso Avanzados
 - **📊 Organización de documentos**: Un estado por proyecto con backup automático en S3
@@ -382,16 +499,19 @@ Tu usuario/rol de AWS necesita los siguientes permisos:
 - **🌍 Trabajo offline/online**: Acceso inmediato offline, sincronización cuando hay conexión
 
 ### Modos de Operación
-- **Solo Local**: Funciona completamente sin conexión S3 (solo IndexedDB)
-- **Híbrido**: Almacenamiento local inmediato + sincronización manual a S3
-- **Recuperación**: Los archivos en S3 se pueden descargar si se pierde el almacenamiento local
+- **Autenticado + Local**: Con token válido, funciona completamente sin conexión S3 (solo IndexedDB)
+- **Autenticado + Híbrido**: Con token válido, almacenamiento local inmediato + sincronización manual a S3
+- **Sin Autenticación**: Sin token válido, acceso completamente bloqueado con pantalla de error
+- **Recuperación**: Los archivos en S3 se pueden descargar si se pierde el almacenamiento local (requiere token válido)
 
 ### Límites y Recomendaciones
 - **Archivo individual**: Máximo 100MB (limitado por S3 y IndexedDB)
 - **Total por estado (local)**: Hasta 1GB recomendado en IndexedDB
 - **Total por estado (S3)**: Prácticamente ilimitado
 - **Tipos de archivo**: Todos soportados (imágenes, videos, documentos, código, etc.)
-- **Sincronización**: Manual para control total del usuario
+- **Sincronización**: Manual para control total del usuario (requiere autenticación)
+- **Tokens JWT**: Recomendado 1-8 horas para uso normal, 24h para demos
+- **Sesiones**: Los tokens se mantienen solo durante la sesión del navegador
 
 ## 🛠️ Troubleshooting
 
@@ -416,6 +536,19 @@ Tu usuario/rol de AWS necesita los siguientes permisos:
 - Revisa los logs del backend para errores específicos de AWS
 - Confirma que el bucket S3 tenga los permisos correctos
 - Intenta con archivos más pequeños primero
+
+#### ❌ "Acceso Denegado" / "Token JWT requerido"
+**Solución:**
+- Genera un token JWT: `node generate-jwt.cjs -e 2h -u usuario`
+- Usa la URL completa generada por el script
+- Verifica que el token no haya expirado
+- Revisa que la clave secreta sea la misma en generador y validador
+
+#### ❌ "Token expirado"
+**Solución:**
+- Genera un nuevo token con `node generate-jwt.cjs`
+- Usa tokens más largos para sesiones largas (ej: `-e 8h`)
+- El token se valida automáticamente cada minuto
 
 #### ❌ "No hay suficiente espacio disponible"
 **Solución:**
@@ -458,12 +591,21 @@ Tu usuario/rol de AWS necesita los siguientes permisos:
 - � **Dashboard S3**: Vista detallada de uso y costos de S3
 - �🔄 **Sincronización bidireccional**: Detectar cambios en S3 y sincronizar hacia local
 
+### Mejoras de Autenticación JWT
+- 🔐 **JWT desde Backend**: Mover validación JWT completamente al backend
+- 🔄 **Refresh Tokens**: Sistema de refresh tokens para sesiones largas
+- 👥 **Roles y Permisos**: Sistema de roles más granular (admin, user, readonly)
+- 🔐 **2FA**: Autenticación de dos factores opcional
+- 📱 **OAuth Integration**: Login con Google, GitHub, etc.
+- 🕒 **Session Management**: Gestión avanzada de sesiones activas
+
 ### Mejoras Técnicas
 - **AWS SDK v3**: Migración a la versión más moderna y optimizada
 - **Streaming Uploads**: Soporte para archivos muy grandes con streaming
 - **Retry Logic**: Lógica de reintentos más robusta para fallos de red
 - **Caching**: Cache inteligente de metadatos de S3
 - **Compression**: Compresión automática de archivos antes de S3
+- **Rate Limiting**: Límites de velocidad para API y uploads
 
 ---
 
@@ -488,10 +630,38 @@ Usuario presiona "Sync" → Backend Express → Amazon S3
 - **Backend (Express)**: API REST para comunicación segura con AWS
 - **Amazon S3**: Almacenamiento en la nube escalable y duradero
 
-## 👨‍💻 Autor
+## � Documentación Adicional
 
-Desarrollado como prueba de concepto para demostrar las capacidades avanzadas de **React + IndexedDB + AWS S3** con arquitectura de almacenamiento dual y sincronización manual.
+- **[JWT-AUTH.md](./JWT-AUTH.md)**: Guía completa del sistema de autenticación JWT
+- **[backend/README.md](./backend/README.md)**: Documentación específica del backend
+- **generate-jwt.cjs**: Script generador con `--help` para ver todas las opciones
+
+## 🚀 Enlaces Rápidos
+
+### Para Empezar
+```bash
+# 1. Instalar dependencias
+npm install && cd backend && npm install && cd ..
+
+# 2. Configurar AWS (editar backend/.env)
+cp backend/.env.example backend/.env
+
+# 3. Generar token JWT
+node generate-jwt.cjs -e 2h -u admin
+
+# 4. Iniciar servidores
+cd backend && npm run dev &
+npm run dev
+```
+
+### URLs de Ejemplo
+- **Sin token**: http://localhost:5173 (mostrará "Acceso Denegado")
+- **Con token**: http://localhost:5173?token=tu_token_jwt_aqui
+
+## �👨‍💻 Autor
+
+Desarrollado como prueba de concepto para demostrar las capacidades avanzadas de **React + IndexedDB + AWS S3 + Autenticación JWT** con arquitectura de almacenamiento dual, sincronización manual y sistema de autenticación completo.
 
 ---
 
-⭐ **¡Proyecto educativo para aprender gestión de estado, almacenamiento web moderno e integración con servicios en la nube!** ⭐
+⭐ **¡Proyecto educativo para aprender gestión de estado, almacenamiento web moderno, integración con servicios en la nube y autenticación JWT!** ⭐
