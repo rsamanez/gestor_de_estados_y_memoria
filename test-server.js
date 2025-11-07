@@ -225,15 +225,112 @@ app.get('/s/:shortCode', async (req, res) => {
   }
 });
 
-// Short URL stats
+// URL Stats
 app.get('/api/urls/stats/:shortCode', async (req, res) => {
   try {
-    const { default: handler } = await import('./api/urls/stats/[shortCode].js');
-    await handler(req, res);
+    const { getStore } = await import('./lib/storage.js');
+    const { shortCode } = req.params;
+    
+    if (!shortCode) {
+      return res.status(400).json({ error: 'Código corto requerido' });
+    }
+
+    const urlData = await getStore(shortCode);
+
+    if (!urlData) {
+      return res.status(404).json({ error: 'Código no encontrado' });
+    }
+
+    return res.json({
+      shortCode,
+      createdAt: urlData.createdAt,
+      expiresAt: urlData.expiresAt,
+      clicks: urlData.clicks,
+      isExpired: new Date() > new Date(urlData.expiresAt)
+    });
+
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error obteniendo estadísticas:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
+
+// URL Redirect (Short URL access)
+app.get('/s/:shortCode', async (req, res) => {
+  try {
+    const { getStore, setStore } = await import('./lib/storage.js');
+    const { shortCode } = req.params;
+    
+    if (!shortCode) {
+      return res.status(400).send(getErrorPage('Código requerido', 'No se proporcionó código corto.'));
+    }
+
+    const urlData = await getStore(shortCode);
+
+    if (!urlData) {
+      return res.status(404).send(getErrorPage('Enlace no encontrado', `El código "${shortCode}" no existe o ha expirado.`));
+    }
+
+    // Verificar si el código corto ha expirado
+    if (new Date() > new Date(urlData.expiresAt)) {
+      return res.status(410).send(getErrorPage('Enlace expirado', `El código "${shortCode}" ha expirado.`));
+    }
+
+    // Incrementar contador de clicks
+    urlData.clicks++;
+    await setStore(shortCode, urlData);
+
+    // Redirigir a la aplicación con el JWT
+    const host = req.headers.host || 'localhost:3001';
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const redirectUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}?token=${urlData.token}`;
+    
+    console.log(`🔗 Redirecting ${shortCode} to: ${redirectUrl}`);
+    return res.redirect(302, redirectUrl);
+
+  } catch (error) {
+    console.error('Error procesando código corto:', error);
+    return res.status(500).send(getErrorPage('Error del servidor', 'Error interno del servidor'));
+  }
+});
+
+function getErrorPage(title, message) {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>${title}</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <style>
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+          text-align: center;
+          padding: 50px;
+          background: #f5f5f5;
+          margin: 0;
+        }
+        .container {
+          max-width: 500px;
+          margin: 0 auto;
+          background: white;
+          padding: 40px;
+          border-radius: 8px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; margin-bottom: 20px; }
+        p { color: #666; line-height: 1.5; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>🔗 ${title}</h1>
+        <p>${message}</p>
+      </div>
+    </body>
+    </html>
+  `;
+}
 
 app.listen(PORT, () => {
   console.log(`🚀 API Server running on http://localhost:${PORT}`);

@@ -13,7 +13,7 @@ echo ""
 echo "🔍 Verificando backend..."
 if ! curl -s http://localhost:3001/api/health > /dev/null; then
     echo "❌ Backend no está corriendo en puerto 3001"
-    echo "   Ejecuta: cd backend && npm run dev"
+    echo "   Ejecuta: npm run test-server"
     exit 1
 fi
 echo "✅ Backend está activo"
@@ -35,7 +35,7 @@ echo ""
 
 # Crear URL corta
 echo "🔗 Creando URL corta..."
-SHORT_URL_RESPONSE=$(curl -s -X POST http://localhost:3001/api/short-url \
+SHORT_URL_RESPONSE=$(curl -s -X POST http://localhost:3001/api/urls/create \
   -H "Content-Type: application/json" \
   -d "{\"token\":\"$JWT_TOKEN\",\"expiresIn\":\"4h\"}")
 
@@ -54,7 +54,7 @@ echo ""
 
 # Mostrar estadísticas iniciales
 echo "📊 Estadísticas iniciales:"
-curl -s http://localhost:3001/api/short-url/$SHORT_CODE/stats | \
+curl -s http://localhost:3001/api/urls/stats/$SHORT_CODE | \
   jq -r '"   Código: " + .shortCode + "\n   Creado: " + .createdAt + "\n   Expira: " + .expiresAt + "\n   Clicks: " + (.clicks|tostring) + "\n   Expirado: " + (.isExpired|tostring)'
 echo ""
 
@@ -74,7 +74,7 @@ echo ""
 
 # Mostrar estadísticas después del acceso
 echo "📊 Estadísticas después del acceso:"
-curl -s http://localhost:3001/api/short-url/$SHORT_CODE/stats | \
+curl -s http://localhost:3001/api/urls/stats/$SHORT_CODE | \
   jq -r '"   Código: " + .shortCode + "\n   Clicks: " + (.clicks|tostring) + " (debería ser 1+)\n   Expirado: " + (.isExpired|tostring)'
 echo ""
 
@@ -87,10 +87,10 @@ echo "   Corta:   $SHORT_URL"
 echo ""
 echo "📖 Comandos útiles:"
 echo "   # Ver estadísticas"
-echo "   curl http://localhost:3001/api/short-url/$SHORT_CODE/stats"
+echo "   curl http://localhost:3001/api/urls/stats/$SHORT_CODE"
 echo ""
 echo "   # Crear otra URL corta"
-echo "   curl -X POST http://localhost:3001/api/short-url \\"
+echo "   curl -X POST http://localhost:3001/api/urls/create \\"
 echo "     -H \"Content-Type: application/json\" \\"
 echo "     -d '{\"token\":\"$JWT_TOKEN\",\"expiresIn\":\"2h\"}'"
 echo ""
