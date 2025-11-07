@@ -16,11 +16,16 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'State and fileData required' });
     }
 
-    // Crear un token simple para prueba (sin JWT)
-    const token = JSON.stringify({
+    // Crear JWT token real
+    const jwt = await import('jsonwebtoken');
+    const jwtSecret = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
+    
+    const token = jwt.default.sign({
       state,
       fileData,
       timestamp: Date.now()
+    }, jwtSecret, { 
+      expiresIn: '24h' 
     });
 
     // Generar código corto único
