@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import jwt from 'jsonwebtoken';
+import { generateJWT, parseTimeToSeconds } from '../generate-jwt.js';
 import { getStore, setStore } from '../lib/storage.js';
 
 export default async function handler(req, res) {
@@ -17,27 +17,19 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'State and fileData required' });
     }
 
-    // Crear JWT token compatible con la aplicación
-    const jwtSecret = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
+    // Usar el generador JWT existente del proyecto
+    const jwtSecret = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production';
     
-    const nowUnix = Math.floor(Date.now() / 1000);
-    const token = jwt.sign({
-      app: 'file-manager',  // Requerido por la aplicación
-      user: {                // Usuario requerido
-        id: 'system-user',
-        name: 'Sistema',
-        email: 'system@app.com',
-        role: 'user'
-      },
-      permissions: ['read', 'write'], // Permisos básicos
+    const jwtPayload = {
+      user: 'demo-user',
+      permissions: ['read', 'write', 'sync'],
+      app: 'file-manager',
       state,
-      fileData,
-      timestamp: Date.now(),
-      iat: nowUnix,
-      exp: nowUnix + (24 * 60 * 60) // 24 horas
-    }, jwtSecret, { 
-      algorithm: 'HS256'  // Algoritmo requerido
-    });
+      fileData
+    };
+
+    const expirationInSeconds = parseTimeToSeconds('24h');
+    const token = generateJWT(jwtPayload, jwtSecret, expirationInSeconds);
     
     console.log('🔐 Generated compatible JWT token preview:', token.substring(0, 50) + '...');
 

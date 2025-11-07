@@ -742,6 +742,92 @@ curl -X POST http://localhost:3001/api/short-url \
 # 3. Usar la shortUrl devuelta en el navegador
 ```
 
+## 🔧 Comandos Útiles de Desarrollo
+
+### Generación de Tokens JWT
+```bash
+# Token básico (24 horas por defecto)
+node generate-jwt.js
+
+# Token con tiempo personalizado
+node generate-jwt.js -e 1h              # 1 hora
+node generate-jwt.js -e 30m             # 30 minutos
+node generate-jwt.js -e 24h             # 24 horas
+node generate-jwt.js -e 7d              # 7 días
+
+# Token con usuario personalizado
+node generate-jwt.js -e 8h -u admin     # Usuario 'admin' por 8 horas
+node generate-jwt.js -e 2h -u dev       # Usuario 'dev' por 2 horas
+
+# Con clave secreta personalizada
+node generate-jwt.js -e 24h -u demo-user -s your-super-secret-jwt-key-change-this-in-production
+
+# Guardar token en archivo
+node generate-jwt.js -e 24h -o token.json
+
+# Ver todas las opciones
+node generate-jwt.js --help
+```
+
+### API de URLs Cortas (Vercel Production)
+```bash
+# Crear URL corta con datos de estado
+curl -X POST "https://prueba-mnsf87vpw-rsamanezs-projects.vercel.app/api/test-create" \
+  -H "Content-Type: application/json" \
+  -d '{"state": 3, "fileData": {"name": "test.txt", "type": "text/plain"}}'
+
+# Crear URL corta con archivo PDF
+curl -X POST "https://prueba-mnsf87vpw-rsamanezs-projects.vercel.app/api/test-create" \
+  -H "Content-Type: application/json" \
+  -d '{"state": 2, "fileData": {"name": "documento.pdf", "size": 1024000, "type": "application/pdf"}}'
+
+# Crear URL corta con imagen
+curl -X POST "https://prueba-mnsf87vpw-rsamanezs-projects.vercel.app/api/test-create" \
+  -H "Content-Type: application/json" \
+  -d '{"state": 1, "fileData": {"name": "imagen.jpg", "size": 500000, "type": "image/jpeg"}}'
+```
+
+### Deployment y Testing
+```bash
+# Deploy a Vercel (producción)
+vercel --prod
+
+# Ver logs de funciones serverless
+vercel logs
+
+# Testing local con Vercel Dev
+vercel dev
+
+# Build local para testing
+npm run build
+npm run preview
+```
+
+### URLs de Ejemplo Funcionales
+```bash
+# URLs cortas generadas (reemplazar con códigos reales):
+https://prueba-mnsf87vpw-rsamanezs-projects.vercel.app/api/r?code=52307953
+https://prueba-mnsf87vpw-rsamanezs-projects.vercel.app/api/r?code=7c54dbb9
+
+# URL directa con token JWT:
+https://prueba-mnsf87vpw-rsamanezs-projects.vercel.app?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# Local development:
+http://localhost:5173?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+### Debugging y Monitoreo
+```bash
+# Ver estado de Redis (si tienes acceso)
+redis-cli -h redis-19148.c9.us-east-1-4.ec2.redns.redis-cloud.com -p 19148 -a Iwa2ZPbKjL3IKT8Yr5CHjwkR22beYen0
+
+# Verificar variables de entorno
+vercel env ls
+
+# Ver información del proyecto
+vercel project ls
+```
+
 ---
 
 ## 📄 Licencia

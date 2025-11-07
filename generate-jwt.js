@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-const crypto = require('crypto');
-const fs = require('fs');
-const path = require('path');
+import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 
 // Configuración por defecto
 const DEFAULT_EXPIRATION = '24h'; // 24 horas
@@ -202,8 +202,8 @@ ${token}
 }
 
 // Ejecutar solo si es llamado directamente
-if (require.main === module) {
+if (process.argv[1] === new URL(import.meta.url).pathname) {
   main();
 }
 
-module.exports = { generateJWT, parseTimeToSeconds };
+export { generateJWT, parseTimeToSeconds };
