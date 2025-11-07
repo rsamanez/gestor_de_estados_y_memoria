@@ -45,7 +45,7 @@ export default async function handler(req, res) {
     // Construir URL corta
     const host = req.headers.host;
     const protocol = req.headers['x-forwarded-proto'] || 'https';
-    const shortUrl = `${protocol}://${host}/api/redirect/${shortCode}`;
+    const shortUrl = `${protocol}://${host}/api/r?code=${shortCode}`;
 
     console.log('Created short URL:', shortUrl);
 
