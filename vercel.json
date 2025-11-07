@@ -4,7 +4,7 @@
   "rewrites": [
     {
       "source": "/s/:shortCode",
-      "destination": "/api/short?c=:shortCode"
+      "destination": "/api/urls/redirect/:shortCode"
     }
   ],
   "headers": [
