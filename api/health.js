@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     message: 'File Manager API is running on Vercel',
     timestamp: new Date().toISOString(),
     s3Configured: !!process.env.AWS_ACCESS_KEY_ID && !!process.env.AWS_SECRET_ACCESS_KEY,
-    kvConfigured: !!process.env.VERCEL_ENV,
+    redisConfigured: !!(process.env.REDIS_PRUEBA_REDIS_URL || process.env.REDIS_URL),
     storage: getStorageInfo(),
     environment: process.env.NODE_ENV || 'development'
   });
