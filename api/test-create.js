@@ -37,6 +37,10 @@ export default async function handler(req, res) {
 
     console.log('Storing URL data:', { shortCode, urlData });
     await setStore(shortCode, urlData);
+    
+    // Verificar que se guardó correctamente
+    const verification = await getStore(shortCode);
+    console.log('Verification after save:', verification);
 
     // Construir URL corta
     const host = req.headers.host;
