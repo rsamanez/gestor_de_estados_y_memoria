@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 
-const API_BASE_URL = 'http://localhost:3001/api';
+// Usar rutas relativas que funcionen tanto en desarrollo como en producción
+const API_BASE_URL = '/api';
 
 // Hook para manejar uploads a S3
 export const useS3Upload = () => {

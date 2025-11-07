@@ -7,11 +7,21 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "vercel-dev": "vercel dev",
+    "deploy": "vercel --prod",
+    "test-server": "node test-server.js",
+    "start": "npm run test-server"
   },
   "dependencies": {
+    "aws-sdk": "^2.1490.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "formidable": "^3.5.1",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

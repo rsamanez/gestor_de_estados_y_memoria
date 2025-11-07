@@ -24,11 +24,16 @@ Una aplicación React avanzada que demuestra gestión de estados y subida de arc
 - `npm run preview`: Vista previa de la build de producción
 - `npm run lint`: Verificación de código con ESLint
 
-### Backend
+### Backend (Vercel Functions)
 ```bash
-cd backend
-npm run dev      # Desarrollo con nodemon (puerto 3001)
-npm start        # Producción con node
+# Development local con Vercel
+npm run vercel-dev   # Servidor completo con Vercel Dev (puerto 3000)
+
+# O desarrollo tradicional (solo frontend)
+npm run dev          # Solo frontend con Vite (puerto 5173)
+
+# Deploy a producción
+npm run deploy       # Deploy a Vercel
 ```
 
 ### Autenticación JWT
@@ -79,11 +84,10 @@ node generate-jwt.cjs -e 2h -o token.json
 - **CSS3**: Estilos modernos con gradientes, animaciones y componentes de carga
 
 ### Backend
-- **Node.js + Express**: API REST para comunicación con S3
+- **Vercel Serverless Functions**: API REST escalable sin servidores
 - **AWS SDK v2**: Integración oficial con servicios de Amazon Web Services
-- **Multer**: Middleware para manejo de uploads multipart/form-data
-- **CORS**: Configuración de seguridad para peticiones cross-origin
-- **dotenv**: Gestión segura de variables de entorno
+- **Formidable**: Manejo de uploads multipart/form-data en serverless
+- **Edge Runtime**: Funciones optimizadas para máximo rendimiento
 
 ### Infraestructura en la Nube
 - **Amazon S3**: Almacenamiento de archivos escalable y duradero
@@ -114,19 +118,26 @@ node generate-jwt.cjs -e 2h -o token.json
 │   ├── App.css                   # Estilos con componentes de loading
 │   ├── index.css                 # Estilos globales optimizados
 │   └── main.jsx                  # Punto de entrada
-├── backend/                  # API Backend
-│   ├── server.js                 # Servidor Express con endpoints S3
-│   ├── routes/
-│   │   └── shortUrls.js          # Rutas para URLs cortas
-│   ├── package.json              # Dependencias del backend
-│   ├── .env.example              # Variables de entorno de ejemplo
-│   ├── .env                      # Configuración AWS (no incluido en git)
-│   └── README.md                 # Documentación específica del backend
+├── api/                      # Vercel Serverless Functions
+│   ├── upload.js                 # POST /api/upload - Subir archivos a S3
+│   ├── files/[stateId].js        # GET /api/files/:stateId - Obtener archivos por estado
+│   ├── files/[fileId].js         # DELETE /api/files/:fileId - Eliminar archivo
+│   ├── download/[fileId].js      # GET /api/download/:fileId - URL de descarga
+│   ├── short-url.js              # POST /api/short-url - Crear URL corta
+│   ├── s/[shortCode].js          # GET /s/:shortCode - Redirección de URL corta
+│   ├── short-url/[shortCode]/stats.js  # GET /api/short-url/:shortCode/stats
+│   └── health.js                 # GET /api/health - Health check
+├── lib/                      # Utilidades y configuración
+│   ├── aws-config.js             # Configuración AWS S3
+│   ├── utils.js                  # Utilidades generales
+│   └── storage.js                # Sistema de almacenamiento URLs cortas
+├── vercel.json               # Configuración de deploy y rutas Vercel
 ├── generate-jwt.cjs          # Script generador de tokens JWT
 ├── demo-short-urls.sh        # Script de demo para URLs cortas
 ├── JWT-AUTH.md               # Documentación del sistema de autenticación
 ├── CONCEPT-PERSISTENCE.md    # Documentación conceptual de persistencia
-├── package.json              # Dependencias del frontend
+├── VERCEL-MIGRATION.md       # Guía completa de migración a Vercel
+├── package.json              # Dependencias consolidadas (frontend + backend)
 └── README.md                 # Esta documentación
 ```
 
@@ -147,24 +158,18 @@ npm install
 npm run dev
 ```
 
-### 2. Configuración del Backend
+### 2. Configuración de Variables de Entorno
 ```bash
-# Navegar al directorio del backend
-cd backend
-
-# Instalar dependencias del backend
-npm install
-
-# Configurar variables de entorno
-cp .env.example .env
-# Editar .env con tus credenciales AWS:
+# Configurar variables de entorno (local)
+cp .env.example .env.local
+# Editar .env.local con tus credenciales AWS:
 # AWS_ACCESS_KEY_ID=tu_access_key
 # AWS_SECRET_ACCESS_KEY=tu_secret_key
 # AWS_REGION=us-east-1
 # S3_BUCKET_NAME=tu-bucket-name
 
-# Ejecutar el servidor backend
-npm run dev
+# Para producción en Vercel, configura las variables en el dashboard
+# o usa Vercel CLI: vercel env add AWS_ACCESS_KEY_ID production
 ```
 
 ### 3. Configuración de AWS S3
@@ -200,16 +205,23 @@ node generate-jwt.cjs -e 2h -u admin -o admin-token.json
 **⚠️ IMPORTANTE**: La aplicación requiere un token JWT válido para funcionar. Sin token, mostrará una pantalla de "Acceso Denegado".
 
 ### 5. Ejecutar la Aplicación Completa
+
+#### Opción A: Desarrollo con Vercel (Recomendado)
 ```bash
-# Terminal 1: Backend (puerto 3001)
-cd backend && npm run dev
+# Una sola terminal: Frontend + Backend integrados
+npm run vercel-dev  # Ejecuta en puerto 3000
 
-# Terminal 2: Frontend (puerto 5173)
-npm run dev
-
-# Terminal 3: Generar token y usar URL completa
+# Generar token JWT
 node generate-jwt.cjs -e 2h -u admin
-# Copiar y pegar la URL generada en el navegador
+# Usar la URL generada (puerto 3000)
+```
+
+#### Opción B: Desarrollo tradicional (Solo frontend)
+```bash
+# Una terminal: Solo frontend
+npm run dev  # Puerto 5173 (sin funcionalidades de backend)
+
+# Nota: Las funciones de S3 y URLs cortas no funcionarán en este modo
 ```
 
 ### 6. Acceder a la Aplicación
@@ -217,6 +229,10 @@ node generate-jwt.cjs -e 2h -u admin
 #### Opción 1: URL Completa (Directa)
 1. **Generar token**: El script mostrará una URL completa como:
    ```
+   # Con Vercel Dev (recomendado)
+   http://localhost:3000?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+   
+   # Con Vite solo (sin backend)
    http://localhost:5173?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    ```
 
@@ -228,7 +244,7 @@ node generate-jwt.cjs -e 2h -u admin
 1. **Generar URL corta**: Con el backend corriendo, usa curl o Postman:
    ```bash
    # Usando curl (reemplaza TU_TOKEN_JWT con el token generado)
-   curl -X POST http://localhost:3001/api/short-url \
+   curl -X POST http://localhost:3000/api/short-url \
      -H "Content-Type: application/json" \
      -d '{"token":"TU_TOKEN_JWT","expiresIn":"2h"}'
    ```
@@ -237,18 +253,44 @@ node generate-jwt.cjs -e 2h -u admin
    ```json
    {
      "shortCode": "a1b2c3d4",
-     "shortUrl": "http://localhost:3001/s/a1b2c3d4",
-     "originalUrl": "http://localhost:5173?token=eyJhbG...",
+     "shortUrl": "http://localhost:3000/s/a1b2c3d4",
+     "originalUrl": "http://localhost:3000?token=eyJhbG...",
      "expiresAt": "2024-01-15T14:30:00.000Z"
    }
    ```
 
-3. **Compartir**: Usa la `shortUrl` para compartir fácilmente (ej: `http://localhost:3001/s/a1b2c3d4`)
+3. **Compartir**: Usa la `shortUrl` para compartir fácilmente (ej: `http://localhost:3000/s/a1b2c3d4`)
 
 4. **Redirección automática**: Al acceder a la URL corta, te redirige automáticamente a la app con el token válido
 
 #### Sin Token
-Si accedes a `http://localhost:5173` sin el parámetro `?token=`, verás una pantalla de "Acceso Denegado" con instrucciones
+Si accedes a `http://localhost:3000` (o `http://localhost:5173`) sin el parámetro `?token=`, verás una pantalla de "Acceso Denegado" con instrucciones
+
+## 🚀 Deploy a Producción en Vercel
+
+### Configuración Rápida
+```bash
+# 1. Instalar Vercel CLI (una sola vez)
+npm install -g vercel
+
+# 2. Deploy inicial
+vercel
+
+# 3. Configurar variables de entorno en dashboard de Vercel:
+# - AWS_ACCESS_KEY_ID
+# - AWS_SECRET_ACCESS_KEY  
+# - AWS_REGION
+# - S3_BUCKET_NAME
+
+# 4. Deploy a producción
+npm run deploy
+```
+
+### URL de Producción
+Una vez desplegado, tu aplicación estará disponible en:
+`https://tu-proyecto.vercel.app`
+
+**📖 Guía completa**: Ver [VERCEL-MIGRATION.md](./VERCEL-MIGRATION.md) para instrucciones detalladas de migración y deploy.
 
 ## 💡 Funcionalidades
 
@@ -367,19 +409,19 @@ Este script:
 JWT_TOKEN=$(node generate-jwt.cjs -e 4h -u admin | grep "token=" | cut -d'=' -f2)
 
 # 2. Crear URL corta
-curl -X POST http://localhost:3001/api/short-url \
+curl -X POST http://localhost:3000/api/short-url \
   -H "Content-Type: application/json" \
   -d "{\"token\":\"$JWT_TOKEN\",\"expiresIn\":\"4h\"}"
 
 # 3. Obtener estadísticas de URL corta
-curl http://localhost:3001/api/short-url/a1b2c3d4/stats
+curl http://localhost:3000/api/short-url/a1b2c3d4/stats
 ```
 
 #### Con JavaScript/Frontend
 ```javascript
 // Generar URL corta desde el frontend
 async function createShortUrl(jwtToken, expiresIn = '2h') {
-  const response = await fetch('http://localhost:3001/api/short-url', {
+  const response = await fetch('http://localhost:3000/api/short-url', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -391,7 +433,7 @@ async function createShortUrl(jwtToken, expiresIn = '2h') {
   });
   
   const data = await response.json();
-  return data.shortUrl; // ej: "http://localhost:3001/s/a1b2c3d4"
+  return data.shortUrl; // ej: "http://localhost:3000/s/a1b2c3d4"
 }
 ```
 
