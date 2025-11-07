@@ -1,0 +1,3 @@
+TEST FILE - Validación doble upload
+Timestamp: 2025-11-07 01:15:30
+Este archivo se debe subir SOLO UNA VEZ a S3

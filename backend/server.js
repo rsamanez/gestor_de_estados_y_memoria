@@ -185,7 +185,7 @@ app.get('/api/files/:stateId', async (req, res) => {
 });
 
 // Endpoint para eliminar archivo
-app.delete('/api/files/:fileId', async (req, res) => {
+app.delete('/api/delete/:fileId', async (req, res) => {
   try {
     const { fileId } = req.params;
     
@@ -251,6 +251,46 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     s3Configured: !!BUCKET_NAME
   });
+});
+
+// Endpoint para listar archivos de S3
+app.get('/api/files', async (req, res) => {
+  try {
+    const { stateId } = req.query;
+    
+    console.log('📋 Listing files from S3, stateId:', stateId);
+
+    const s3Params = {
+      Bucket: BUCKET_NAME,
+      Prefix: stateId ? `state-${stateId}/` : ''
+    };
+
+    const result = await s3.listObjectsV2(s3Params).promise();
+    
+    const files = result.Contents?.map(obj => ({
+      id: obj.Key,
+      name: obj.Key.split('/').pop(),
+      size: obj.Size,
+      uploadedAt: obj.LastModified.toISOString(),
+      stateId: obj.Key.startsWith('state-') ? parseInt(obj.Key.split('/')[0].replace('state-', '')) : null,
+      source: 's3'
+    })) || [];
+
+    console.log(`✅ Found ${files.length} files in S3`);
+
+    res.json({
+      success: true,
+      files: files
+    });
+
+  } catch (error) {
+    console.error('❌ List files error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Internal server error listing files',
+      files: []
+    });
+  }
 });
 
 // Manejo de errores global

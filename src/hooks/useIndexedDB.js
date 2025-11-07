@@ -92,6 +92,40 @@ class IndexedDBManager {
     });
   }
 
+  // Guardar metadatos de archivo sin datos binarios (para archivos de S3)
+  async saveFileMetadata(fileMetadata) {
+    if (!this.db) await this.init();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction([STORES.FILES], 'readwrite');
+      const store = transaction.objectStore(STORES.FILES);
+
+      const fileRecord = {
+        id: fileMetadata.id,
+        name: fileMetadata.name,
+        size: fileMetadata.size,
+        type: fileMetadata.type || 'application/octet-stream',
+        stateId: fileMetadata.stateId,
+        uploadedAt: fileMetadata.uploadedAt || new Date().toISOString(),
+        source: fileMetadata.source || 's3',
+        // No guardamos fileData para archivos de S3
+        fileData: null
+      };
+
+      const request = store.put(fileRecord);
+
+      request.onsuccess = () => {
+        console.log('✅ File metadata saved:', fileRecord.name);
+        resolve(fileRecord);
+      };
+
+      request.onerror = () => {
+        console.error('❌ Error saving file metadata:', request.error);
+        reject(request.error);
+      };
+    });
+  }
+
   // Obtener archivos por estado
   async getFilesByState(stateId) {
     if (!this.db) await this.init();
@@ -212,6 +246,48 @@ class IndexedDBManager {
       }
     }
     return null;
+  }
+
+  // Marcar archivo como sincronizado con S3
+  async markAsSynced(fileId) {
+    if (!this.db) await this.init();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction([STORES.FILES], 'readwrite');
+      const store = transaction.objectStore(STORES.FILES);
+      
+      // Primero obtener el archivo
+      const getRequest = store.get(fileId);
+      
+      getRequest.onsuccess = () => {
+        const fileData = getRequest.result;
+        if (fileData) {
+          // Marcar como sincronizado
+          fileData.syncedToS3 = true;
+          fileData.syncedAt = new Date().toISOString();
+          
+          // Actualizar el registro
+          const putRequest = store.put(fileData);
+          
+          putRequest.onsuccess = () => {
+            console.log('✅ File marked as synced:', fileData.name);
+            resolve(fileData);
+          };
+          
+          putRequest.onerror = () => {
+            console.error('❌ Error marking file as synced:', putRequest.error);
+            reject(putRequest.error);
+          };
+        } else {
+          reject(new Error('File not found'));
+        }
+      };
+      
+      getRequest.onerror = () => {
+        console.error('❌ Error getting file to mark as synced:', getRequest.error);
+        reject(getRequest.error);
+      };
+    });
   }
 }
 
@@ -346,6 +422,16 @@ export const fileStorageDB = {
     }
   },
 
+  // Guardar metadatos de archivo sin datos binarios (para archivos de S3)
+  saveFileMetadata: async (fileMetadata) => {
+    try {
+      return await dbManager.saveFileMetadata(fileMetadata);
+    } catch (error) {
+      console.error('Error saving file metadata:', error);
+      throw error;
+    }
+  },
+
   // Obtener archivos de un estado específico
   getFiles: async (stateId) => {
     try {
@@ -383,6 +469,16 @@ export const fileStorageDB = {
     } catch (error) {
       console.error('Error getting storage info:', error);
       return null;
+    }
+  },
+
+  // Marcar archivo como sincronizado con S3
+  markAsSynced: async (fileId) => {
+    try {
+      return await dbManager.markAsSynced(fileId);
+    } catch (error) {
+      console.error('Error marking file as synced:', error);
+      throw error;
     }
   }
 };

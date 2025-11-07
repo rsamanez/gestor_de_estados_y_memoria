@@ -6,9 +6,17 @@ const S3UploadStatus = ({
   uploadProgress, 
   isSyncing, 
   syncStatus, 
-  s3Connected 
+  s3Connected,
+  lastSyncTime,
+  autoSync = false
 }) => {
-  if (!isUploading && !isSyncing && syncStatus === 'idle') {
+  const formatTime = (date) => {
+    if (!date) return '';
+    return date.toLocaleTimeString();
+  };
+
+  // Mostrar siempre si hay sincronización automática
+  if (!isUploading && !isSyncing && !syncStatus && !autoSync) {
     return null;
   }
 
@@ -20,8 +28,13 @@ const S3UploadStatus = ({
           {s3Connected ? '☁️' : '⚠️'}
         </span>
         <span className="status-text">
-          {s3Connected ? 'Conectado a S3' : 'Sin conexión a S3'}
+          {s3Connected ? 'Sincronización Automática Activa' : 'Sin conexión a S3'}
         </span>
+        {autoSync && lastSyncTime && (
+          <span className="last-sync">
+            Última sync: {formatTime(lastSyncTime)}
+          </span>
+        )}
       </div>
 
       {/* Upload en progreso */}
