@@ -3,6 +3,7 @@ const multer = require('multer');
 const AWS = require('aws-sdk');
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
+const shortUrlRoutes = require('./routes/shortUrls');
 require('dotenv').config();
 
 const app = express();
@@ -14,6 +15,10 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+
+// Integrar rutas de URLs cortas
+app.use('/api', shortUrlRoutes);
+app.use('/', shortUrlRoutes);
 
 // Configurar AWS S3
 AWS.config.update({

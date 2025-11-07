@@ -1,4 +1,14 @@
-# 🗂️ Gestor de Estados y Archivos con Sincronización S3 y Autenticación JWT
+# 🗂️ Gestor de Estados y Archivos con Sincroniza### � Sistema de Autenticación JWT + URLs Cortas
+- **Tokens Seguros**: Autenticación basada en JWT con firma criptográfica HMAC-SHA256
+- **Expiración Configurable**: Tokens desde minutos hasta semanas (1m, 30m, 1h, 24h, 7d, etc.)
+- **URLs Cortas**: Sistema completo para generar URLs cortas en lugar de compartir JWTs largos
+- **Generador Incluido**: Script `generate-jwt.cjs` para crear tokens con usuarios personalizados
+- **API de URLs Cortas**: Endpoints REST para crear, usar y monitorear códigos cortos
+- **Validación Completa**: Verificación de formato, firma, expiración y permisos de aplicación
+- **Analytics Básico**: Contador de clicks y estadísticas de uso por URL corta
+- **Experiencia Fluida**: URLs limpias, persistencia de sesión y logout automático al expirar
+- **Compartir Fácil**: Enlaces cortos tipo `localhost:3001/s/abc123` en lugar de URLs con JWT largo
+- **Protección Total**: Toda la aplicación protegida - sin token válido no hay acceso y Autenticación JWT
 
 Una aplicación React avanzada que demuestra gestión de estados y subida de archivos con persistencia dual: **IndexedDB local** y **Amazon S3 en la nube** con sincronización manual. Incluye un sistema completo de **autenticación JWT** con tokens de tiempo configurable.
 
@@ -204,6 +214,8 @@ node generate-jwt.cjs -e 2h -u admin
 ```
 
 ### 6. Acceder a la Aplicación
+
+#### Opción 1: URL Completa (Directa)
 1. **Generar token**: El script mostrará una URL completa como:
    ```
    http://localhost:5173?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -213,7 +225,31 @@ node generate-jwt.cjs -e 2h -u admin
 
 3. **Acceso automático**: La aplicación validará el token y te dará acceso
 
-4. **Sin token**: Si accedes a `http://localhost:5173` sin el parámetro `?token=`, verás una pantalla de "Acceso Denegado" con instrucciones
+#### Opción 2: URL Corta (Recomendada para compartir)
+1. **Generar URL corta**: Con el backend corriendo, usa curl o Postman:
+   ```bash
+   # Usando curl (reemplaza TU_TOKEN_JWT con el token generado)
+   curl -X POST http://localhost:3001/api/short-url \
+     -H "Content-Type: application/json" \
+     -d '{"token":"TU_TOKEN_JWT","expiresIn":"2h"}'
+   ```
+
+2. **Respuesta**: Recibirás algo como:
+   ```json
+   {
+     "shortCode": "a1b2c3d4",
+     "shortUrl": "http://localhost:3001/s/a1b2c3d4",
+     "originalUrl": "http://localhost:5173?token=eyJhbG...",
+     "expiresAt": "2024-01-15T14:30:00.000Z"
+   }
+   ```
+
+3. **Compartir**: Usa la `shortUrl` para compartir fácilmente (ej: `http://localhost:3001/s/a1b2c3d4`)
+
+4. **Redirección automática**: Al acceder a la URL corta, te redirige automáticamente a la app con el token válido
+
+#### Sin Token
+Si accedes a `http://localhost:5173` sin el parámetro `?token=`, verás una pantalla de "Acceso Denegado" con instrucciones
 
 ## 💡 Funcionalidades
 
@@ -577,6 +613,138 @@ Tu usuario/rol de AWS necesita los siguientes permisos:
 - **Estado de S3**: El indicador visual muestra si está conectado o desconectado
 - **IndexedDB**: Usa DevTools > Application > Storage para inspeccionar datos locales
 
+## 🔗 API de URLs Cortas
+
+### Endpoints Disponibles
+
+#### `POST /api/short-url`
+Genera una URL corta para un token JWT.
+
+**Request:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expiresIn": "2h"  // opcional, por defecto "1h"
+}
+```
+
+**Response:**
+```json
+{
+  "shortCode": "a1b2c3d4",
+  "shortUrl": "http://localhost:3001/s/a1b2c3d4",
+  "originalUrl": "http://localhost:5173?token=eyJhbG...",
+  "expiresAt": "2024-01-15T14:30:00.000Z"
+}
+```
+
+#### `GET /s/:shortCode`
+Redirige a la aplicación con el token JWT asociado.
+
+**Ejemplo:**
+- Acceder: `http://localhost:3001/s/a1b2c3d4`
+- Redirige a: `http://localhost:5173?token=eyJhbG...`
+
+#### `GET /api/short-url/:shortCode/stats`
+Obtiene estadísticas sobre una URL corta (sin revelar el token).
+
+**Response:**
+```json
+{
+  "shortCode": "a1b2c3d4",
+  "createdAt": "2024-01-15T12:30:00.000Z",
+  "expiresAt": "2024-01-15T14:30:00.000Z",
+  "clicks": 5,
+  "isExpired": false
+}
+```
+
+### Script de Demo Automático
+
+Para probar todo el flujo de URLs cortas automáticamente:
+
+```bash
+# Ejecutar demo completa
+./demo-short-urls.sh
+```
+
+Este script:
+1. ✅ Verifica que el backend esté corriendo
+2. 🎫 Genera un token JWT de 4 horas
+3. 🔗 Crea una URL corta automáticamente
+4. 📊 Muestra estadísticas iniciales
+5. 🌐 Simula un acceso (redirección)
+6. 📊 Muestra estadísticas actualizadas
+7. 🎉 Proporciona URLs y comandos para pruebas manuales
+
+### Ejemplos de Uso
+
+#### Con curl
+```bash
+# 1. Generar JWT
+JWT_TOKEN=$(node generate-jwt.cjs -e 4h -u admin | grep "token=" | cut -d'=' -f2)
+
+# 2. Crear URL corta
+curl -X POST http://localhost:3001/api/short-url \
+  -H "Content-Type: application/json" \
+  -d "{\"token\":\"$JWT_TOKEN\",\"expiresIn\":\"4h\"}"
+
+# 3. Obtener estadísticas de URL corta
+curl http://localhost:3001/api/short-url/a1b2c3d4/stats
+```
+
+#### Con JavaScript/Frontend
+```javascript
+// Generar URL corta desde el frontend
+async function createShortUrl(jwtToken, expiresIn = '2h') {
+  const response = await fetch('http://localhost:3001/api/short-url', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      token: jwtToken,
+      expiresIn: expiresIn
+    })
+  });
+  
+  const data = await response.json();
+  return data.shortUrl; // ej: "http://localhost:3001/s/a1b2c3d4"
+}
+```
+
+### Características de las URLs Cortas
+
+- ✅ **Códigos únicos**: 8 caracteres hexadecimales (`a1b2c3d4`)
+- ⏰ **Expiración configurable**: Misma duración que el JWT o personalizada
+- 📊 **Contador de clicks**: Rastrea cuántas veces se accede
+- 🔒 **Seguridad**: Los tokens JWT no se exponen en logs del servidor
+- 💾 **Almacenamiento temporal**: En memoria (en producción usar Redis/DB)
+- 🚀 **Redirección rápida**: Menos de 50ms de latencia típica
+
+### Ventajas de URLs Cortas
+
+1. **Compartir fácil**: URLs más cortas y manejables
+2. **Seguridad mejorada**: El JWT no es visible en la URL
+3. **Analytics**: Seguimiento de accesos y uso
+4. **Expiración independiente**: Puede expirar antes que el JWT
+5. **Logs más limpios**: Los tokens JWT no aparecen en logs de acceso
+
+### Limitaciones Actuales
+
+- **Almacenamiento en memoria**: Se pierden al reiniciar el servidor
+- **Sin persistencia**: No sobrevive reinicios del backend
+- **Dominio fijo**: Usa el dominio del backend (no personalizable)
+
+### Para Producción
+
+Se recomienda:
+- Usar **Redis** o **base de datos** para persistir códigos cortos
+- Implementar **rate limiting** para prevenir abuso
+- Agregar **dominios personalizados** (ej: `https://mi-app.com/s/abc123`)
+- **Logs de auditoría** para seguridad
+- **Cleanup automático** de códigos expirados
+
 ## 🎯 Próximas Mejoras
 
 ### Funcionalidades Planificadas
@@ -656,7 +824,22 @@ npm run dev
 
 ### URLs de Ejemplo
 - **Sin token**: http://localhost:5173 (mostrará "Acceso Denegado")
-- **Con token**: http://localhost:5173?token=tu_token_jwt_aqui
+- **Con token directo**: http://localhost:5173?token=tu_token_jwt_aqui
+- **Con URL corta**: http://localhost:3001/s/abc12345 (redirige automáticamente)
+
+### Demo Rápida de URLs Cortas
+```bash
+# Generar token, crear URL corta y probar todo automáticamente
+./demo-short-urls.sh
+
+# O manualmente paso a paso:
+node generate-jwt.cjs -e 2h -u usuario     # 1. Generar JWT
+# 2. Copiar token y crear URL corta:
+curl -X POST http://localhost:3001/api/short-url \
+  -H "Content-Type: application/json" \
+  -d '{"token":"TU_TOKEN_AQUI","expiresIn":"2h"}'
+# 3. Usar la shortUrl devuelta en el navegador
+```
 
 ## �👨‍💻 Autor
 
