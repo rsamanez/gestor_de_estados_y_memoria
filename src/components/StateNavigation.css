@@ -1,0 +1,108 @@
+.state-navigation {
+  margin: 2rem 0;
+  text-align: center;
+}
+
+.state-navigation h2 {
+  color: #333;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+.state-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.state-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  border: 2px solid var(--state-color);
+  background: var(--state-color-light);
+  color: var(--state-color);
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+  min-width: 120px;
+  font-size: 0.9rem;
+}
+
+.state-button:hover {
+  background: var(--state-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.state-button.active {
+  background: var(--state-color);
+  color: white;
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.state-icon {
+  font-size: 1.2rem;
+}
+
+.state-text {
+  flex: 1;
+}
+
+.current-indicator {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.current-state-info {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  color: #333;
+}
+
+.current-state-info p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.current-state-info strong {
+  color: #646cff;
+}
+
+@media (max-width: 768px) {
+  .state-buttons {
+    gap: 0.75rem;
+  }
+  
+  .state-button {
+    padding: 0.75rem 1rem;
+    min-width: 100px;
+    font-size: 0.85rem;
+  }
+  
+  .state-icon {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .state-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .state-button {
+    width: 100%;
+    max-width: 200px;
+    justify-content: center;
+  }
+}
