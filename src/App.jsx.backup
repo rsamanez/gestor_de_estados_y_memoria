@@ -1,8 +1,18 @@
 import { useState, useEffect } from 'react'
-import { useIndexedDBSafe, fileStorageDB } from './hooks/useIndexedDB'
+import { useIndexedDB, fileStorageDB } from './hooks/useIndexedDB'
 import { useS3Upload, useS3Sync, s3FileAPI } from './hooks/useS3Upload'
 import StateNavigation from './components/StateNavigation'
-import FileUpload from './components/FileUpload'
+import FileUpload from './c      <footer className="app-footer">
+        <p>🛠️ Los datos se guardan automáticamente en IndexedDB</p>
+        <p>🔄 El estado se restaura al recargar la página</p>
+        <p>📊 Mayor capacidad de almacenamiento que localStorage</p>
+        {storageInfo && (
+          <p>💾 Espacio disponible: {formatBytes(storageInfo.available)}</p>
+        )}
+      </footer>
+    </div>
+  )
+} // Fin de AppOriginalileUpload'
 import FileList from './components/FileList'
 import S3UploadStatus from './components/S3UploadStatus'
 import './App.css'
@@ -10,38 +20,52 @@ import './App.css'
 function App() {
   console.log('🚀 App component is rendering...');
   
-  // Estado actual (persistido en IndexedDB con hook seguro)
-  const [indexedDBState, setIndexedDBState, isIndexedDBLoading, indexedDBError] = useIndexedDBSafe('currentAppState', 1);
-  const [fallbackState, setFallbackState] = useState(1);
+  return (
+    <div className="app">
+      <h1>Test - App is working!</h1>
+      <p>Si ves esto, React está funcionando correctamente.</p>
+    </div>
+  );
+}
+
+// Función completa original comentada
+function AppOriginal() {
+  console.log('🚀 App component is rendering...');
   
-  // Usar IndexedDB si está disponible, sino fallback
-  const currentState = isIndexedDBLoading ? fallbackState : indexedDBState;
-  const isStateLoading = isIndexedDBLoading;
+  // Estado actual (persistido en IndexedDB)
+  // const [currentState, setCurrentState, isStateLoading] = useIndexedDB('currentAppState', 1);
+  // console.log('📊 State loading:', isStateLoading, 'Current state:', currentState);
   
-  // Lista de archivos y estados de la aplicación
+  // Temporal: usar estado simple para debuggear
+  const [currentState, setCurrentState] = useState(1);
+  const isStateLoading = false;
+  
+  // Lista de archivos (se actualiza cuando cambia el estado o se suben/eliminan archivos)
   const [files, setFiles] = useState([]);
-  const [isLoadingFiles, setIsLoadingFiles] = useState(true);
+  const [isLoadingFiles, setIsLoadingFiles] = useState(false); // Cambio a false
   const [storageInfo, setStorageInfo] = useState(null);
   const [s3Connected, setS3Connected] = useState(false);
   
-  // Hooks para S3
-  const { uploadToS3, isUploading, uploadProgress } = useS3Upload();
-  const { syncToS3, isSyncing, syncStatus } = useS3Sync();
-  
-  // Cargar archivos al montar el componente o cambiar de estado
-  useEffect(() => {
-    if (!isStateLoading) {
-      loadFiles();
-      loadStorageInfo();
-      checkS3Connection();
-    }
-  }, [currentState, isStateLoading]);
+  // Hooks para S3 - Comentados temporalmente
+  // const { uploadToS3, isUploading, uploadProgress } = useS3Upload();
+  // const { syncToS3, isSyncing, syncStatus } = useS3Sync();
+  const uploadToS3 = null, isUploading = false, uploadProgress = {};
+  const syncToS3 = null, isSyncing = false, syncStatus = null;
 
-  // Verificar conexión con S3 cada 30 segundos
-  useEffect(() => {
-    const interval = setInterval(checkS3Connection, 30000);
-    return () => clearInterval(interval);
-  }, []);
+  // Cargar archivos al montar el componente o cambiar de estado
+  // useEffect(() => {
+  //   if (!isStateLoading) {
+  //     loadFiles();
+  //     loadStorageInfo();
+  //     checkS3Connection();
+  //   }
+  // }, [currentState, isStateLoading]);
+
+  // // Verificar conexión con S3 cada 30 segundos
+  // useEffect(() => {
+  //   const interval = setInterval(checkS3Connection, 30000);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   const loadFiles = async () => {
     try {
@@ -75,6 +99,10 @@ function App() {
     }
   };
 
+  const handleStateChange = (newState) => {
+    setCurrentState(newState);
+  };
+
   const handleFileUploaded = async (file) => {
     try {
       // 1. Guardar en IndexedDB primero (almacenamiento inmediato)
@@ -88,12 +116,18 @@ function App() {
           console.log('🚀 Starting background upload to S3...');
           const s3File = await uploadToS3(file, currentState);
           console.log('✅ S3 upload completed:', s3File);
+          
+          // Opcional: Marcar archivo como respaldado en IndexedDB
+          // Podrías agregar un campo 's3Backed' al archivo local
+          
         } catch (s3Error) {
           console.warn('⚠️ S3 upload failed, file saved locally:', s3Error.message);
+          // El archivo sigue disponible localmente
         }
       } else {
         console.log('📱 S3 not connected, file saved locally only');
       }
+
     } catch (error) {
       console.error('Error uploading file:', error);
       throw error;
@@ -102,9 +136,14 @@ function App() {
 
   const handleDeleteFile = async (fileId) => {
     try {
+      // Eliminar de IndexedDB
       await fileStorageDB.deleteFile(fileId);
       await loadFiles();
       await loadStorageInfo();
+
+      // TODO: También eliminar de S3 si existe
+      // En una implementación completa, necesitarías trackear qué archivos están en S3
+      
     } catch (error) {
       console.error('Error deleting file:', error);
       alert('Error al eliminar el archivo. Por favor intente nuevamente.');
@@ -134,6 +173,7 @@ function App() {
       } else {
         alert(`⚠️ Sincronización parcial:\n\n📤 Subidos: ${result.uploaded}\n❌ Fallidos: ${result.failed}\n📁 Total: ${result.total}\n\nRevisa la consola para detalles de errores.`);
       }
+      
     } catch (error) {
       console.error('Sync error:', error);
       alert(`❌ Error durante la sincronización: ${error.message}\n\nRevisa la consola para más detalles.`);
@@ -156,16 +196,9 @@ function App() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const handleStateChange = (newState) => {
-    if (isIndexedDBLoading) {
-      setFallbackState(newState);
-    } else {
-      setIndexedDBState(newState);
-    }
-  };
-  
-  // Mostrar loading si IndexedDB está cargando
+  // Mostrar loading mientras se cargan los datos iniciales
   if (isStateLoading) {
+    console.log('⏳ App showing loading state...');
     return (
       <div className="app loading-app">
         <div className="loading-container">
@@ -175,7 +208,9 @@ function App() {
       </div>
     );
   }
-  
+
+  console.log('✅ App rendering main content...');
+
   return (
     <div className="app">
       <header className="app-header">
@@ -188,7 +223,7 @@ function App() {
             📁 Total de archivos: <strong>{getTotalFiles()}</strong>
           </span>
           <span className="stat">
-            📂 En estado actual ({currentState}): <strong>{getCurrentStateFiles()}</strong>
+            📂 En estado actual: <strong>{getCurrentStateFiles()}</strong>
           </span>
           {storageInfo && (
             <span className="stat">
@@ -227,15 +262,6 @@ function App() {
             </div>
           )}
           
-          {/* Estado de upload S3 */}
-          <S3UploadStatus 
-            isUploading={isUploading}
-            uploadProgress={uploadProgress}
-            isSyncing={isSyncing}
-            syncStatus={syncStatus}
-            s3Connected={s3Connected}
-          />
-          
           {isLoadingFiles ? (
             <div className="loading-files">
               <div className="loading-spinner small"></div>
@@ -252,7 +278,7 @@ function App() {
       </main>
 
       <footer className="app-footer">
-        <p>🛠️ Los datos se guardan automáticamente en IndexedDB</p>
+        <p>�️ Los datos se guardan automáticamente en IndexedDB</p>
         <p>🔄 El estado se restaura al recargar la página</p>
         <p>📊 Mayor capacidad de almacenamiento que localStorage</p>
         {storageInfo && (

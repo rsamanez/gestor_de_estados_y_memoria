@@ -16,17 +16,18 @@ class IndexedDBManager {
 
   // Inicializar la base de datos
   async init() {
+    console.log('🔧 Initializing IndexedDB...');
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
 
       request.onerror = () => {
-        console.error('Error opening IndexedDB:', request.error);
+        console.error('❌ Error opening IndexedDB:', request.error);
         reject(request.error);
       };
 
       request.onsuccess = () => {
         this.db = request.result;
-        console.log('IndexedDB initialized successfully');
+        console.log('✅ IndexedDB initialized successfully');
         resolve(this.db);
       };
 
@@ -219,18 +220,23 @@ const dbManager = new IndexedDBManager();
 
 // Hook personalizado para usar IndexedDB
 export const useIndexedDB = (key, initialValue) => {
+  console.log('🔧 useIndexedDB hook called with:', key, initialValue);
   const [storedValue, setStoredValue] = useState(initialValue);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    console.log('🔄 useIndexedDB useEffect triggered for key:', key);
     const loadValue = async () => {
       try {
+        console.log('📥 Loading value from IndexedDB for key:', key);
         const value = await dbManager.getAppState(key, initialValue);
+        console.log('✅ Value loaded:', value);
         setStoredValue(value);
       } catch (error) {
-        console.error(`Error loading value for key "${key}":`, error);
+        console.error(`❌ Error loading value for key "${key}":`, error);
         setStoredValue(initialValue);
       } finally {
+        console.log('🏁 Setting isLoading to false for key:', key);
         setIsLoading(false);
       }
     };
@@ -246,6 +252,83 @@ export const useIndexedDB = (key, initialValue) => {
     } catch (error) {
       console.error(`Error setting value for key "${key}":`, error);
     }
+  };
+
+  return [storedValue, setValue, isLoading];
+};
+
+// Hook mejorado con manejo de errores
+export const useIndexedDBSafe = (key, initialValue) => {
+  const [storedValue, setStoredValue] = useState(initialValue);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    console.log('🔄 Safe IndexedDB hook loading for key:', key);
+    
+    const loadValue = async () => {
+      try {
+        console.log('🔧 Initializing database...');
+        await dbManager.init();
+        console.log('✅ Database initialized');
+        
+        console.log('📥 Getting app state for key:', key);
+        const value = await dbManager.getAppState(key, initialValue);
+        console.log('✅ Value retrieved:', value);
+        
+        setStoredValue(value);
+        setError(null);
+      } catch (error) {
+        console.error(`❌ Error in safe hook for key "${key}":`, error);
+        setStoredValue(initialValue);
+        setError(error);
+      } finally {
+        console.log('🏁 Setting loading to false for key:', key);
+        setIsLoading(false);
+      }
+    };
+
+    loadValue();
+  }, [key, initialValue]);
+
+  const setValue = async (value) => {
+    try {
+      const valueToStore = value instanceof Function ? value(storedValue) : value;
+      setStoredValue(valueToStore);
+      
+      if (!error) {
+        await dbManager.saveAppState(key, valueToStore);
+        console.log('💾 Safe hook saved:', key, valueToStore);
+      } else {
+        console.warn('⚠️ IndexedDB not available, using in-memory storage only');
+      }
+    } catch (error) {
+      console.error(`❌ Error setting value for key "${key}":`, error);
+    }
+  };
+
+  return [storedValue, setValue, isLoading, error];
+};
+
+// Hook simplificado para debugging
+export const useSimpleIndexedDB = (key, initialValue) => {
+  const [storedValue, setStoredValue] = useState(initialValue);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    console.log('🔄 Simple hook loading for key:', key);
+    
+    // Simular carga async
+    setTimeout(() => {
+      console.log('✅ Simple hook loaded for key:', key);
+      setIsLoading(false);
+    }, 100);
+  }, [key]);
+
+  const setValue = (value) => {
+    const valueToStore = value instanceof Function ? value(storedValue) : value;
+    setStoredValue(valueToStore);
+    console.log('💾 Simple hook saved:', key, valueToStore);
   };
 
   return [storedValue, setValue, isLoading];

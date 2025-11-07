@@ -53,6 +53,41 @@
   100% { transform: rotate(360deg); }
 }
 
+/* Sync controls */
+.sync-controls {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+.sync-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.sync-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.sync-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.sync-button:active {
+  transform: translateY(0);
+}
+
 .app-header {
   text-align: center;
   margin-bottom: 2rem;
