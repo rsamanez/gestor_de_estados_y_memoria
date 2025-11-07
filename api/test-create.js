@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
 import { getStore, setStore } from '../lib/storage.js';
 
 export default async function handler(req, res) {
@@ -16,17 +17,29 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'State and fileData required' });
     }
 
-    // Crear JWT token real
-    const jwt = await import('jsonwebtoken');
+    // Crear JWT token compatible con la aplicación
     const jwtSecret = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
     
-    const token = jwt.default.sign({
+    const nowUnix = Math.floor(Date.now() / 1000);
+    const token = jwt.sign({
+      app: 'file-manager',  // Requerido por la aplicación
+      user: {                // Usuario requerido
+        id: 'system-user',
+        name: 'Sistema',
+        email: 'system@app.com',
+        role: 'user'
+      },
+      permissions: ['read', 'write'], // Permisos básicos
       state,
       fileData,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      iat: nowUnix,
+      exp: nowUnix + (24 * 60 * 60) // 24 horas
     }, jwtSecret, { 
-      expiresIn: '24h' 
+      algorithm: 'HS256'  // Algoritmo requerido
     });
+    
+    console.log('🔐 Generated compatible JWT token preview:', token.substring(0, 50) + '...');
 
     // Generar código corto único
     const shortCode = crypto.randomBytes(4).toString('hex');
