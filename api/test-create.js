@@ -7,6 +7,9 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('🔧 Environment check - REDIS_URL exists:', !!process.env.REDIS_URL);
+    console.log('🌍 NODE_ENV:', process.env.NODE_ENV);
+    
     const { state, fileData } = req.body;
 
     if (!state || !fileData) {
@@ -35,12 +38,15 @@ export default async function handler(req, res) {
       clicks: 0
     };
 
-    console.log('Storing URL data:', { shortCode, urlData });
-    await setStore(shortCode, urlData);
+    console.log('🚀 About to store URL data:', { shortCode, urlData });
+    
+    const storeResult = await setStore(shortCode, urlData);
+    console.log('📊 Store operation result:', storeResult);
     
     // Verificar que se guardó correctamente
+    console.log('🔄 Immediate verification...');
     const verification = await getStore(shortCode);
-    console.log('Verification after save:', verification);
+    console.log('✅ Verification after save:', verification ? 'SUCCESS' : 'FAILED', verification);
 
     // Construir URL corta
     const host = req.headers.host;
