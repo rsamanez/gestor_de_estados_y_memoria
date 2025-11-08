@@ -92,6 +92,46 @@ class IndexedDBManager {
     });
   }
 
+  // Actualizar archivo con información de S3
+  async updateFileWithS3Info(fileId, s3Info) {
+    if (!this.db) await this.init();
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction([STORES.FILES], 'readwrite');
+      const store = transaction.objectStore(STORES.FILES);
+      const getRequest = store.get(fileId);
+
+      getRequest.onsuccess = () => {
+        const fileData = getRequest.result;
+        if (fileData) {
+          // Agregar información de S3 al archivo existente
+          const updatedFile = {
+            ...fileData,
+            ...s3Info
+          };
+
+          const putRequest = store.put(updatedFile);
+          putRequest.onsuccess = () => {
+            console.log('File updated with S3 info:', fileId, s3Info);
+            resolve(updatedFile);
+          };
+
+          putRequest.onerror = () => {
+            console.error('Error updating file with S3 info:', putRequest.error);
+            reject(putRequest.error);
+          };
+        } else {
+          reject(new Error('File not found'));
+        }
+      };
+
+      getRequest.onerror = () => {
+        console.error('Error getting file for update:', getRequest.error);
+        reject(getRequest.error);
+      };
+    });
+  }
+
   // Obtener archivos por estado
   async getFilesByState(stateId) {
     if (!this.db) await this.init();
@@ -372,6 +412,16 @@ export const fileStorageDB = {
       return await dbManager.deleteFile(fileId);
     } catch (error) {
       console.error('Error deleting file:', error);
+      throw error;
+    }
+  },
+
+  // Actualizar archivo con información de S3
+  updateFileWithS3Info: async (fileId, s3Info) => {
+    try {
+      return await dbManager.updateFileWithS3Info(fileId, s3Info);
+    } catch (error) {
+      console.error('Error updating file with S3 info:', error);
       throw error;
     }
   },

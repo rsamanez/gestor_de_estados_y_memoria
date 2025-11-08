@@ -133,7 +133,7 @@ export const s3FileAPI = {
   // Eliminar archivo
   deleteFile: async (fileId) => {
     const encodedFileId = encodeURIComponent(fileId);
-    const response = await fetch(`${API_BASE_URL}/files/${encodedFileId}`, {
+    const response = await fetch(`${API_BASE_URL}/files/delete/${encodedFileId}`, {
       method: 'DELETE'
     });
 
@@ -160,14 +160,17 @@ export const s3FileAPI = {
     return result.downloadUrl;
   },
 
-  // Verificar salud de la API
+  // Verificar salud de la API y conexión S3
   checkHealth: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/health`);
+      // Verificar conexión S3 específicamente
+      const response = await fetch(`${API_BASE_URL}/health?test=s3`);
       const result = await response.json();
-      return result.success;
+      
+      // Verificar que S3 esté conectado y configurado
+      return result.success && result.bucket && result.envCheck?.AWS_ACCESS_KEY_ID;
     } catch (error) {
-      console.error('API health check failed:', error);
+      console.error('S3 health check failed:', error);
       return false;
     }
   },

@@ -89,6 +89,16 @@ function App() {
           console.log('🚀 Starting background upload to S3...');
           const s3File = await uploadToS3(file, currentState);
           console.log('✅ S3 upload completed:', s3File);
+          
+          // 3. Actualizar el archivo local con la información de S3
+          if (s3File && s3File.s3Key) {
+            await fileStorageDB.updateFileWithS3Info(localFile.id, {
+              s3Key: s3File.s3Key,
+              s3Url: s3File.s3Url,
+              s3Synced: true
+            });
+            console.log('📝 Updated local file with S3 info:', s3File.s3Key);
+          }
         } catch (s3Error) {
           console.warn('⚠️ S3 upload failed, file saved locally:', s3Error.message);
         }
@@ -103,7 +113,28 @@ function App() {
 
   const handleDeleteFile = async (fileId) => {
     try {
+      // Primero obtener información del archivo para saber el s3Key
+      const allFiles = await fileStorageDB.getAllFiles();
+      const fileToDelete = allFiles.find(f => f.id === fileId);
+      
+      // Eliminar de IndexedDB (local)
       await fileStorageDB.deleteFile(fileId);
+      
+      // Si S3 está conectado y el archivo tiene s3Key, también eliminar de S3
+      if (s3Connected && fileToDelete && fileToDelete.s3Key) {
+        try {
+          await s3FileAPI.deleteFile(fileToDelete.s3Key);
+          console.log('✅ File deleted from both IndexedDB and S3:', fileToDelete.s3Key);
+        } catch (s3Error) {
+          console.error('❌ Error deleting from S3 (file removed locally):', s3Error);
+          // No lanzamos error aquí, el archivo ya se eliminó localmente
+        }
+      } else if (s3Connected && fileToDelete && !fileToDelete.s3Key) {
+        console.log('📱 File deleted locally only (no S3 key found):', fileId);
+      } else {
+        console.log('📱 File deleted locally only (S3 not connected):', fileId);
+      }
+      
       await loadFiles();
       await loadStorageInfo();
     } catch (error) {
